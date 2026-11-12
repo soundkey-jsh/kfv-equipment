@@ -360,6 +360,15 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .qjudge{margin:0;font-size:13px;font-weight:600}
 .qjudge.lv1{color:var(--green)} .qjudge.lv2{color:var(--yellow)} .qjudge.lv3{color:var(--red)}
 .hint{margin:0;font-size:12.5px;color:var(--muted)} .hint.bad{color:var(--red)}
+#ewBox{margin-top:8px}.ewcount{font-weight:400;color:var(--muted);font-size:12px}.ewhelp{margin:8px 0 6px}
+.ewlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px 12px;font-family:var(--font-mono);font-size:12.5px}
+.ewrow{display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px dashed var(--line)}.ewrow b{min-width:38px}.ewrow .use{font-family:var(--font-body);font-size:11px;color:var(--accent)}
+.ewrow .warn{font-family:var(--font-body);font-size:11px;color:var(--red)}.ewrow button{margin-left:auto;border:0;background:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 4px}
+.ewadd{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}.ewadd input{width:auto;flex:1;min-width:140px}
+.recbox{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;background:var(--bg)}
+.rechead{display:flex;flex-direction:column;gap:2px}.rechead b{font-size:13.5px}
+.recchips{display:flex;flex-wrap:wrap;gap:6px}.recchip{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:6px;padding:5px 9px;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;line-height:1.25}
+.recchip b{font-family:var(--font-mono)}.recchip small{color:var(--muted);font-size:11px}.recchip:hover{border-color:var(--accent)}.recchip:disabled{cursor:default;opacity:.7}
 @media (max-width:980px){
   .mgrid.head,.fgrid.head{display:none}
   .mgrid{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"kind code stat" "model model model" "user user user" "check check check" "place place place";gap:3px 10px;padding:12px 14px}
@@ -500,9 +509,16 @@ html{-webkit-text-size-adjust:100%}
         <div id="freqRows"></div>
       </section>
       <details class="blxbox"><summary>BLX 주파수표 (그룹 코드 → 주파수)</summary><div class="blxtable" id="blxTable"></div></details>
+      <details class="blxbox" id="ewBox"><summary>EW100 G3 주파수표 (K+ 대역 · 직접 기록) <span class="ewcount" id="ewCount"></span></summary>
+        <p class="hint ewhelp">바디팩·수신기에 보이는 <b>뱅크.채널</b>(예: 5.6)과 주파수를 기록하는 표입니다. 주파수 관리에서 Sennheiser EW100 주파수를 저장하면 자동으로 여기에 쌓이고, 직접 추가할 수도 있습니다. U 뱅크(사용자 지정)는 기기마다 달라 기록하지 않습니다.</p>
+        <div class="ewlist" id="ewTable"></div>
+        <form class="ewadd" id="ewAdd" hidden><input id="ewCode" placeholder="뱅크.채널 (예: 4.3)" aria-label="뱅크.채널"><input id="ewMhz" type="number" step="0.025" inputmode="decimal" placeholder="주파수 MHz (예: 931.250)" aria-label="주파수"><button type="submit" class="btn">표에 추가</button></form>
+      </details>
       <ul class="rules">
         <li>농악공연장 1~10번 주파수는 고정입니다.</li>
         <li>Shure BLX는 그룹 코드를 넣으면 주파수가 자동으로 채워집니다.</li>
+        <li>Sennheiser EW100은 뱅크.채널(예: 5.6)과 주파수를 저장하면 EW100 G3 주파수표에 기록되고, 다음부터 자동으로 채워집니다.</li>
+        <li>주파수 창의 추천 주파수는 같은 장소·위험 주파수와 ±0.4MHz 이상, 다른 장소와도 가능한 한 멀리 떨어진 자리를 보여 줍니다.</li>
         <li>빨강은 다른 사용·위험 주파수와 정확히 같은 경우, 노랑은 ±0.400MHz 안에 다른 주파수가 있는 경우입니다. MIPRO 5.8GHz 대역은 비교에서 뺍니다.</li>
         <li>BLX 그룹은 서로 ±0.400MHz 이상 떨어지게 배정합니다.</li>
       </ul>
@@ -749,6 +765,7 @@ html{-webkit-text-size-adjust:100%}
     </div>
     <p class="hint" id="q-blx" hidden></p>
     <p class="qjudge" id="q-judge"></p>
+    <div class="recbox" id="q-rec" hidden><div class="rechead"><b>추천 주파수</b><span class="hint" id="q-recnote"></span></div><div class="recchips" id="q-recchips"></div></div>
     <div class="field"><label for="q-note">비고</label><input id="q-note" placeholder="예: 배정 주파수, 라이더"></div>
     <div class="field"><label for="q-remark">특이사항</label><input id="q-remark"></div>
     <div id="freqConfirm" class="confirm" hidden><span>이 주파수를 삭제할까요?</span><button type="button" class="btn danger" id="freqConfirmDel">삭제</button><button type="button" class="btn" id="freqCancelDel">취소</button></div>
@@ -1513,7 +1530,7 @@ async function makeBackup(note,auto){
   const eq=items.map(i=>Object.assign({id:i.id},strip(i)));
   const payload={version:1,at:new Date().toISOString(),count:eq.length,equipment:eq,codes:codes,
     materials:mats.map(m=>Object.assign({id:m._id},strip(m))),
-    mics:mics.map(m=>Object.assign({id:m._id},strip(m))),freqs:freqs.map(f=>Object.assign({id:f._id},strip(f))),blx:blxTable};
+    mics:mics.map(m=>Object.assign({id:m._id},strip(m))),freqs:freqs.map(f=>Object.assign({id:f._id},strip(f))),blx:blxTable,ew:ewStored};
   const blob=new Blob([JSON.stringify(payload)],{type:"application/json"});
   const r=await assetsNs.upload(blob,{type:"application/json"});
   const doc={at:payload.at,count:eq.length,assetId:r.id,size:blob.size,note:note||"",auto:!!auto};
@@ -1575,7 +1592,8 @@ async function restoreBackup(b){
       wm.forEach((m,id)=>{const c=cm.get(id);const body=strip(m);if(!c||JSON.stringify(strip(c))!==JSON.stringify(body))plan.push(()=>db.collection(name).doc(id).set(body))});
       cm.forEach((c,id)=>{if(!wm.has(id))plan.push(()=>db.collection(name).doc(id).delete())})};
     planColl("mics",mics,data.mics);planColl("freqs",freqs,data.freqs);
-    if(Array.isArray(data.blx)&&JSON.stringify(data.blx)!==JSON.stringify(blxTable))plan.push(()=>db.doc("micmeta/main").set({blx:data.blx}));
+    if(Array.isArray(data.blx)&&JSON.stringify(data.blx)!==JSON.stringify(blxTable))plan.push(()=>db.doc("micmeta/main").set(Object.assign({blx:data.blx},Array.isArray(data.ew)?{ew:data.ew}:{ew:ewStored})));
+    else if(Array.isArray(data.ew)&&JSON.stringify(data.ew)!==JSON.stringify(ewStored))plan.push(()=>db.doc("micmeta/main").update({ew:data.ew}));
     let n=0;
     for(const f of plan){await withRetry(f);n++;if(n%10===0||n===plan.length)st.textContent="되돌리는 중… ("+n+"/"+plan.length+")"}
     await logHistory("restore","",{assetId:"",type:"장비 대장 전체"},[{field:"backup",from:"",to:new Date(b.at).toLocaleString("ko-KR")+" 백업 상태 ("+plan.length+"건 변경)"}]);
@@ -2165,7 +2183,7 @@ async function exportXlsx(dl){
 /* =====================================================================
    핀마이크 관리 대장 (마이크 관리 + 주파수 관리)
    ===================================================================== */
-let mics=[],freqs=[],blxTable=[],micLoaded=false,freqLoaded=false;
+let mics=[],freqs=[],blxTable=[],ewStored=[],micLoaded=false,freqLoaded=false;
 const MSTAT=[{id:"정상",cls:"u-move"},{id:"보관",cls:"u-wait"},{id:"스페어",cls:"u-spare"},{id:"수리",cls:"u-repair"},{id:"고장",cls:"u-broken"},{id:"폐기",cls:"u-disposed"},{id:"",label:"미지정",cls:"u-none"}];
 const mstatOf=s=>MSTAT.find(x=>x.id===(s||""))||MSTAT[MSTAT.length-1];
 const MKEYS=[["venue","사용처"],["kind","종류"],["code","번호"],["model","모델"],["bought","구매일자"],["lastUser","주 사용자"],["status","분류"],["verdict","수리·업체 판정"],["storage","보관 위치"],["place","상태 메모"],["memo","메모"],["repairs","수리 내역"]];
@@ -2374,6 +2392,7 @@ function renderFreqs(){
     frag.append(row);
   });
   r.append(frag);
+  renderEw();
   // BLX 표
   const bt=$("blxTable");if(bt&&bt.dataset.n!==String(blxTable.length)){bt.dataset.n=String(blxTable.length);bt.replaceChildren();
     const byG={};blxTable.forEach(([c,v])=>{const g=String(c).replace(/\d+$/,"");(byG[g]=byG[g]||[]).push([c,v])});
@@ -2398,14 +2417,15 @@ function openFreq(f){
   editFreq=f||null;$("freqFormTitle").textContent=f?fname(f):"주파수 추가";
   const dl=(id,vals)=>$(id).replaceChildren(...vals.map(v=>{const o=document.createElement("option");o.value=v;return o}));
   dl("dl-fplace",uniq(freqs.map(x=>x.place).concat([FPLACE_DANGER])));dl("dl-fmodel",uniq(freqs.map(x=>x.model)));
-  dl("dl-fgroup",blxTable.map(x=>x[0]));
+  dl("dl-fgroup",blxTable.map(x=>x[0]).concat(ewTable().map(r=>r.code)));
   const base=f||{};FFIELDS.forEach(k=>$("q-"+k).value=base[k]??"");
   $("q-err").hidden=true;$("freqConfirm").hidden=true;$("freqDel").hidden=!f||!canWrite;$("freqSave").hidden=!canWrite;
   [...$("freqForm").elements].forEach(e=>{if(e.id&&e.id.startsWith("q-"))e.disabled=!canWrite});
-  freqLive();freqSnap=freqFormSnap();
+  ewAuto=!f;freqLive();freqSnap=freqFormSnap();
   $("freqOverlay").hidden=false;$("freqForm").scrollTop=0;
   setTimeout(()=>{$(f?"q-group":"q-place").focus({preventScroll:true});$("freqForm").scrollTop=0},0);
 }
+let ewAuto=false;
 function freqLive(){
   const tmp={place:$("q-place").value.trim(),model:$("q-model").value.trim(),ch:$("q-ch").value.trim(),group:$("q-group").value.trim(),mhz:$("q-mhz").value===""?null:+$("q-mhz").value};
   const hint=$("q-blx");
@@ -2414,7 +2434,16 @@ function freqLive(){
     else if(v==null){hint.textContent="BLX 주파수표에 없는 그룹입니다. 그룹 코드를 확인하세요.";hint.className="hint bad"}
     else{hint.textContent="BLX 주파수표: "+tmp.group.toUpperCase()+" = "+v.toFixed(3)+" MHz";hint.className="hint";$("q-mhz").value=v}
     if(v!=null)tmp.mhz=v;$("q-mhz").readOnly=v!=null;
+  }else if(isEw(tmp.model)){hint.hidden=false;hint.className="hint";$("q-mhz").readOnly=false;
+    const g=tmp.group,v=ewCodeOk(g)?ewLookup(g):null;
+    if(!g)hint.textContent="EW100은 뱅크.채널(예: 5.6)을 넣으면 기록해 둔 주파수가 채워집니다. 처음 보는 값이면 주파수를 직접 적어 주세요 — 저장할 때 EW100 G3 주파수표에 기록됩니다.";
+    else if(/^u/i.test(g))hint.textContent="U 뱅크(사용자 지정)는 주파수를 직접 적어 주세요. 표에는 기록하지 않습니다.";
+    else if(!ewCodeOk(g)){hint.textContent="뱅크.채널은 5.6처럼 숫자.숫자로 적어 주세요.";hint.className="hint bad"}
+    else if(v==null)hint.textContent="EW100 G3 주파수표에 아직 없는 "+ewNorm(g)+"입니다. 기기에 보이는 주파수를 적으면 저장할 때 표에 기록됩니다.";
+    else{if(!$("q-mhz").value||ewAuto){$("q-mhz").value=v.toFixed(3);tmp.mhz=v;ewAuto=true}
+      const cur=+$("q-mhz").value;hint.textContent="EW100 G3 주파수표: "+ewNorm(g)+" = "+v.toFixed(3)+" MHz"+(Math.abs(cur-v)>0.0005?" (지금 적은 "+cur.toFixed(3)+"와 다릅니다 — 저장하면 표가 바뀝니다)":"");if(Math.abs(cur-v)>0.0005)hint.className="hint bad"}
   }else{hint.hidden=true;$("q-mhz").readOnly=false}
+  renderRec(tmp);
   const others=freqs.filter(x=>!editFreq||x._id!==editFreq._id);
   const j=freqJudge(tmp,others.concat([tmp]));
   const out=$("q-judge");out.className="qjudge lv"+j.lv;
@@ -2422,7 +2451,95 @@ function freqLive(){
     :j.lv===2?"주의: ±0.4MHz 안에 다른 주파수가 있습니다 — "+j.near.map(n=>fname(n.o)+" "+freqMhz(n.o).toFixed(3)).join(", ")
     :j.lv===1?(j.txt==="양호"?"양호: ±0.4MHz 안에 다른 주파수가 없습니다.":j.txt):"";
 }
-["place","model","ch","group","mhz"].forEach(k=>$("q-"+k).addEventListener("input",freqLive));
+["place","model","ch","group","mhz"].forEach(k=>$("q-"+k).addEventListener("input",()=>{if(k==="mhz")ewAuto=false;if(k==="group")ewAuto=true;freqLive()}));
+
+/* ---------- EW100 G3 주파수표 (직접 기록) ---------- */
+const EW_LO=925,EW_HI=937.5;
+const isEw=m=>/sennheiser|ew\s*-?\s*1?00|\bg3\b/i.test(String(m||""));
+const ewCodeOk=c=>/^\d{1,2}\.\d{1,2}$/.test(String(c||"").trim());
+const ewNorm=c=>String(c||"").trim().split(".").map(x=>String(parseInt(x,10))).join(".");
+const ewSort=(a,b)=>{const [x1,y1]=a.code.split(".").map(Number),[x2,y2]=b.code.split(".").map(Number);return x1-x2||y1-y2};
+// 표 = 기록해 둔 값 + 지금 주파수 목록에서 쓰는 값
+function ewTable(){
+  const map=new Map();
+  ewStored.forEach(r=>{const c=ewNorm(r[0]),v=Number(r[1]);if(ewCodeOk(c)&&!isNaN(v))map.set(c,{code:c,mhz:v,uses:[],diff:null})});
+  freqs.forEach(f=>{if(!isEw(f.model)||!ewCodeOk(f.group))return;const v=freqMhz(f);if(v==null||v<100)return;const c=ewNorm(f.group);
+    const r=map.get(c);if(!r)map.set(c,{code:c,mhz:v,uses:[f],diff:null,unsaved:true});else{r.uses.push(f);if(Math.abs(r.mhz-v)>0.0005)r.diff=v}});
+  return [...map.values()].sort(ewSort);
+}
+function ewLookup(c){if(!ewCodeOk(c))return null;const r=ewTable().find(x=>x.code===ewNorm(c));return r?r.mhz:undefined}
+async function ewSave(code,mhz){ // 표에 넣거나 바꾸기
+  code=ewNorm(code);const list=ewStored.filter(r=>ewNorm(r[0])!==code).concat([[code,Number(mhz)]]).sort((a,b)=>ewSort({code:ewNorm(a[0])},{code:ewNorm(b[0])}));
+  await db.doc("micmeta/main").update({ew:list});ewStored=list;
+}
+let ewSeeded=false;
+function renderEw(){
+  const box=$("ewTable");if(!box)return;const rows=ewTable();
+  $("ewCount").textContent=rows.length?"· "+rows.length+"개 기록":"· 아직 기록 없음";
+  box.replaceChildren();
+  if(!rows.length)box.append(el("span","hint","아직 기록이 없습니다."));
+  rows.forEach(r=>{const d=el("div","ewrow");d.append(el("b",null,r.code),document.createTextNode(r.mhz.toFixed(3)));
+    if(r.uses.length)d.append(el("span","use","사용 중"));
+    if(r.diff!=null){const w=el("span","warn","목록 "+r.diff.toFixed(3));w.title="주파수 목록에 같은 뱅크.채널이 다른 주파수로 저장돼 있습니다. 실제 기기에서 확인해 주세요.";d.append(w)}
+    if(canWrite&&!r.unsaved){const x=document.createElement("button");x.type="button";x.textContent="×";x.title=r.code+" 기록 지우기";x.setAttribute("aria-label",r.code+" 기록 지우기");
+      x.onclick=async()=>{const ok=await askConfirm("표에서 지울까요?","EW100 G3 "+r.code+" = "+r.mhz.toFixed(3)+" MHz",null,null,"지우기");if(!ok)return;
+        try{const list=ewStored.filter(q=>ewNorm(q[0])!==r.code);await db.doc("micmeta/main").update({ew:list});ewStored=list;renderEw();toast(r.code+" 기록을 지웠습니다")}catch(err){toast(errMsg(err))}};d.append(x)}
+    box.append(d)});
+  $("ewAdd").hidden=!canWrite;
+  // 처음 한 번: 지금 쓰는 값을 표에 저장해 둠 (편집자만)
+  if(!ewSeeded&&canWrite&&writeOk!==false&&KFV_canSeed()){const add=rows.filter(r=>r.unsaved);ewSeeded=true;
+    if(add.length){const list=ewStored.concat(add.map(r=>[r.code,r.mhz]));db.doc("micmeta/main").update({ew:list}).then(()=>{ewStored=list;renderEw()}).catch(()=>{})}}
+}
+function KFV_canSeed(){return !!db&&freqLoaded&&typeof KFV!=="undefined"&&KFV.me&&!!KFV.me.role}
+$("ewAdd").addEventListener("submit",async e=>{e.preventDefault();
+  const c=$("ewCode").value.trim(),v=Number($("ewMhz").value);
+  if(!ewCodeOk(c)){toast("뱅크.채널은 4.3처럼 숫자.숫자로 적어 주세요");$("ewCode").focus();return}
+  if(!(v>=EW_LO-0.001&&v<=EW_HI+0.001)){toast("K+ 대역(925.000~937.500 MHz) 안의 주파수를 적어 주세요");$("ewMhz").focus();return}
+  try{await ewSave(c,v);$("ewCode").value="";$("ewMhz").value="";renderEw();toast("EW100 G3 "+ewNorm(c)+" = "+v.toFixed(3)+" 기록했습니다")}catch(err){toast(errMsg(err))}});
+
+/* ---------- 추천 주파수 ---------- */
+const REC_GAP=0.4,IMD_GAP=0.1;
+function recCandidates(model){
+  if(isBlx(model))return blxTable.map(([c,v])=>({mhz:Number(v),code:String(c),src:"BLX 표"}));
+  const out=[];const lo=isEw(model)?EW_LO:925,hi=isEw(model)?EW_HI:938;
+  if(isEw(model))ewTable().forEach(r=>out.push({mhz:r.mhz,code:r.code,src:"EW 표"}));
+  for(let k=Math.round(lo*40);k<=Math.round(hi*40);k++){const v=k/40;if(!out.some(o=>Math.abs(o.mhz-v)<0.0005))out.push({mhz:v,code:"",src:isEw(model)?"U 뱅크 직접 설정":"직접 설정"})}
+  return out;
+}
+function recommend(tmp){
+  const model=tmp.model;if(!model)return {list:[],why:"무선모델을 먼저 입력하면 추천 주파수를 보여 드립니다."};
+  if(/mipro/i.test(model)||(tmp.mhz!=null&&tmp.mhz<100))return {list:[],why:"5.8GHz 대역 장비는 추천하지 않습니다."};
+  const others=freqs.filter(x=>!editFreq||x._id!==editFreq._id).map(f=>({f,v:freqMhz(f)})).filter(x=>x.v!=null&&x.v>=100);
+  const near=others.filter(x=>x.f.place===FPLACE_DANGER||(tmp.place&&x.f.place===tmp.place)); // 같은 장소 + 위험 주파수: 반드시 ±0.4
+  const far=others.filter(x=>!near.includes(x));                                              // 다른 장소: 될 수 있는 한 멀리
+  const same=near.filter(x=>x.f.place!==FPLACE_DANGER).map(x=>x.v);
+  const imd=[];for(const a of same)for(const b of same)if(a!==b)imd.push(2*a-b);
+  const minGap=(arr,v)=>{let g=Infinity;for(const o of arr){const d=Math.abs(o.v-v);if(d<g)g=d}return g};
+  const base=[];
+  recCandidates(model).forEach(c=>{
+    const gN=minGap(near,c.mhz);if(gN<=REC_GAP+1e-9)return;
+    if(imd.some(x=>Math.abs(x-c.mhz)<IMD_GAP))return; // 같은 장소 주파수끼리 만드는 혼변조 자리
+    if(same.some(a=>same.some(b=>a!==b&&Math.abs(2*c.mhz-a-b)<IMD_GAP)||same.some(b=>Math.abs(2*a-c.mhz-b)<IMD_GAP)))return; // 새 주파수가 끼면 생기는 혼변조
+    base.push(Object.assign({gN,gF:minGap(far,c.mhz)},c));
+  });
+  let floor=null,res=[];
+  for(const f of [REC_GAP,0.2,0.1]){res=base.filter(c=>c.gF>f+1e-9);if(res.length){floor=f;break}}
+  res.sort((a,b)=>Math.min(b.gF,REC_GAP+.001)-Math.min(a.gF,REC_GAP+.001)||(a.src.includes("표")?0:1)-(b.src.includes("표")?0:1)||b.gN-a.gN);
+  const pick=[];for(const r of res){if(pick.every(p=>Math.abs(p.mhz-r.mhz)>=0.2))pick.push(r);if(pick.length>=8)break}
+  if(!pick.length)return {list:[],why:tmp.place?"조건에 맞는 빈 주파수가 없습니다. 같은 장소·위험 주파수와 ±0.4MHz를 지킬 자리가 없어요.":"장소를 넣으면 같은 장소 주파수를 기준으로 추천합니다."};
+  const where=tmp.place?"같은 장소("+tmp.place+")·위험 주파수":"위험 주파수";
+  const why=floor===REC_GAP?where+"는 물론 다른 장소 주파수와도 ±0.4MHz 이상 떨어진 자리입니다."
+    :where+"와는 ±0.4MHz 이상, 다른 장소 주파수와는 최소 "+Math.min(...pick.map(p=>p.gF)).toFixed(3)+"MHz 떨어진 자리입니다. 다른 장소와 많이 떨어진 순서예요. (주파수가 많아 모든 장소와 0.4MHz를 지킬 자리는 없어요)";
+  return {list:pick,why:why+(same.length>1?" 같은 장소 주파수끼리의 혼변조(IMD) 자리도 피했습니다.":"")};
+}
+function renderRec(tmp){
+  const box=$("q-rec");if(!box)return;const r=recommend(tmp);box.hidden=false;
+  $("q-recnote").textContent=r.why;const chips=$("q-recchips");chips.replaceChildren();
+  r.list.forEach(c=>{const b=document.createElement("button");b.type="button";b.className="recchip";b.disabled=!canWrite;
+    b.append(el("b",null,c.mhz.toFixed(3)+(c.code?"  "+c.code:"")),el("small",null,c.src),el("small",null,"같은 장소 "+(c.gN===Infinity?"—":"Δ"+c.gN.toFixed(3))+" · 다른 장소 "+(c.gF===Infinity?"—":"Δ"+c.gF.toFixed(3))));
+    b.onclick=()=>{if(c.code&&(isBlx(tmp.model)||isEw(tmp.model)))$("q-group").value=c.code;else if(isEw(tmp.model)&&ewCodeOk($("q-group").value))$("q-group").value="U.1";ewAuto=false;$("q-mhz").value=c.mhz.toFixed(3);freqLive()};
+    chips.append(b)});
+}
 function closeFreq(){$("freqOverlay").hidden=true;editFreq=null}
 async function requestCloseFreq(){
   if($("freqOverlay").hidden)return;
@@ -2449,7 +2566,10 @@ $("freqForm").addEventListener("submit",async e=>{
     const t={assetId:fname(d),type:"주파수"};
     if(editFreq){const c=freqDiff(editFreq,d);await db.collection("freqs").doc(editFreq._id).set(d);if(c.length)logHistory("edit",editFreq._id,t,c)}
     else{const ref=await db.collection("freqs").add(d);logHistory("add",ref.id,t,freqDiff({},d))}
-    closeFreq();toast("주파수를 저장했습니다");
+    let ewNote="";
+    if(isEw(d.model)&&ewCodeOk(d.group)&&d.mhz!=null&&d.mhz>=100){const c=ewNorm(d.group),old=ewStored.find(r=>ewNorm(r[0])===c);
+      if(!old||Math.abs(Number(old[1])-d.mhz)>0.0005){try{await ewSave(c,d.mhz);ewNote=" · EW100 G3 표에 "+c+" = "+d.mhz.toFixed(3)+(old?" (바꿈)":" (새로 기록)")}catch(_){}}}
+    closeFreq();toast("주파수를 저장했습니다"+ewNote);
   }catch(err){const x=$("q-err");x.textContent=errMsg(err);x.hidden=false}
   finally{$("freqSave").disabled=false}
 });
@@ -2485,7 +2605,7 @@ render();
   db.collection("freqs").onSnapshot(s=>{freqs=s.docs.map(x=>Object.assign({_id:x.id},x.data()));freqLoaded=true;renderFreqs();if(!$("freqOverlay").hidden)freqLive()},()=>{freqLoaded=true;renderFreqs()});
   db.doc("settings/names").onSnapshot(s=>{if(!s.exists)return;const d=s.data();if(d.map&&typeof d.map==="object")nameOverride=Object.assign({},nameOverride,d.map);if(d.byName&&typeof d.byName==="object")nameByName=Object.assign({},nameByName,d.byName);renderLastMod()},()=>{});
   db.doc("settings/locgroups").onSnapshot(s=>{if(s.exists&&Array.isArray(s.data().groups)&&s.data().groups.length){locGroups=s.data().groups;renderFilters()}},()=>{});
-  db.doc("micmeta/main").onSnapshot(s=>{blxTable=(s.exists&&Array.isArray(s.data().blx))?s.data().blx:[];renderFreqs()},()=>{});
+  db.doc("micmeta/main").onSnapshot(s=>{const d=s.exists?s.data():{};blxTable=Array.isArray(d.blx)?d.blx:[];ewStored=Array.isArray(d.ew)?d.ew:[];renderFreqs()},()=>{});
   route();
   db.collection("materials").onSnapshot(s=>{mats=s.docs.map(x=>Object.assign({_id:x.id},x.data()));if(!$("overlay").hidden)renderCover();renderMats()},()=>{});
   db.doc("codes/table").onSnapshot(s=>{codes=(s.exists&&Array.isArray(s.data().entries))?s.data().entries:[];if(!$("overlay").hidden)refreshPreview();renderFilters()},()=>{});
