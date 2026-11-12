@@ -1414,7 +1414,9 @@ function formSnap(){
   return JSON.stringify([v,cleanRepairs(repairs)]);
 }
 function isDirty(){return canWrite&&(panelForceDirty||formSnap()!==panelSnap)}
-function closePanel(){$("overlay").hidden=true;editing=null;panelForceDirty=false}
+function closePanel(){$("overlay").hidden=true;editing=null;panelForceDirty=false;
+  if(mmReturn){const r=mmReturn;mmReturn=null;setTimeout(()=>{if(!$("overlay").hidden)return;const fresh=r.m.items.map(x=>items.find(i=>i.id===x.id)).filter(Boolean);
+    if(fresh.length){openModelModal(Object.assign({},r.m,{items:fresh}));mmLast=r.last;$("mmList").scrollTop=r.top}},80)}}
 async function requestClose(){
   if($("overlay").hidden||closing)return;
   if(!isDirty()){closePanel();return}
@@ -2046,9 +2048,10 @@ function openModelModal(m){
   m.items.forEach(i=>{const r=el("button","mmrow");r.type="button";
     const u=usageOf(i.usage);
     r.append(el("span","aid",i.assetId||"—"),el("span","muted hide-s",i.location||"—"),el("span","muted hide-s",i.assign||""),el("span","chip "+u.cls,u.label||u.id),el("span","lbl "+(i.label||"")));
-    r.onclick=()=>{closeModelModal(false);openPanel(i)};L.append(r)});
+    r.onclick=()=>{mmReturn={m,top:L.scrollTop,last:mmLast};closeModelModal(false);openPanel(i)};L.append(r)});
   $("modelModal").hidden=false;document.documentElement.classList.add("noscroll");L.scrollTop=0;setTimeout(()=>$("mmClose").focus(),0);
 }
+let mmReturn=null; // 사진으로 보기 → 장비 정보 → 닫으면 모델 창으로 돌아오기
 function closeModelModal(restore=true){$("modelModal").hidden=true;document.documentElement.classList.remove("noscroll");if(restore&&mmLast&&mmLast.focus)mmLast.focus()}
 $("mmClose").onclick=()=>closeModelModal();
 $("modelModal").addEventListener("click",e=>{if(e.target===$("modelModal"))closeModelModal()});
