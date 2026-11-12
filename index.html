@@ -265,11 +265,16 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .doc{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
 .doc:last-child{border-bottom:0}
 .ftype{font-family:var(--font-mono);font-size:11px;font-weight:700;text-align:center;padding:6px 0;border-radius:5px}
-.ft-pdf{color:var(--red);background:var(--red-bg)} .ft-xls{color:var(--green);background:var(--green-bg)} .ft-ppt{color:var(--orange);background:var(--orange-bg)} .ft-doc{color:var(--blue);background:var(--blue-bg)}
+.ft-img{color:var(--accent);background:var(--accent-soft)} .ft-pdf{color:var(--red);background:var(--red-bg)} .ft-xls{color:var(--green);background:var(--green-bg)} .ft-ppt{color:var(--orange);background:var(--orange-bg)} .ft-doc{color:var(--blue);background:var(--blue-bg)}
 .dname{font-weight:600;font-size:13.5px;overflow-wrap:anywhere}
 .dmeta{font-size:12px;color:var(--muted)}
 .dacts{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
 .dacts .btn{padding:5px 10px;font-size:12.5px;text-decoration:none;display:inline-block}
+.ratt{border-top:1px dashed var(--line);padding-top:8px;display:flex;flex-direction:column;gap:6px}.ratthead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.ratthead b{font-size:12.5px;color:var(--muted)}.ratthead .btn{padding:4px 10px;font-size:12px}
+.ratt .doc{padding:6px 8px;border:1px solid var(--line);border-radius:6px;grid-template-columns:40px minmax(0,1fr) auto;background:var(--surface)}.ratt .ftype{padding:4px 0}.ratt .dacts .btn{padding:3px 8px;font-size:12px}
+.rmatt{font-size:11.5px;color:var(--muted);margin-left:6px}
+.dropover{outline:2px dashed var(--accent);outline-offset:2px;background:var(--accent-soft)!important}
+.dropnote{font-size:11.5px;color:var(--muted)}
 .mempty{font-size:13px;color:var(--muted);padding:6px 0}
 .lightbox{position:fixed;inset:0;z-index:35;background:rgba(6,8,12,.88);display:flex;flex-direction:column;padding:calc(12px + env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));gap:10px}
 .lbtop{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#e8ebf1;flex-wrap:wrap}
@@ -555,7 +560,7 @@ html{-webkit-text-size-adjust:100%}
         <span class="hint" id="matHint">위 사진과 매뉴얼은 <b>모델 공통</b>이라 같은 모델 장비에 함께 표시됩니다. 복사한 사진은 Ctrl+V로 붙여넣을 수 있습니다.</span>
       </div>
       <div class="unitph" id="unitBox" hidden>
-        <div class="uphead"><b>이 장비 사진</b><span class="hint" id="unitHint">이 장비 1대에만 보입니다 · 라벨, 시리얼, 설치 모습</span>
+        <div class="uphead"><b>이 장비 사진</b><span class="hint" id="unitHint">이 장비 1대에만 보입니다 · 라벨, 시리얼, 설치 모습 · 끌어다 놓아도 됩니다</span>
           <label class="btn" for="unitFile" id="unitAdd">+ 사진</label><input type="file" id="unitFile" accept="image/*" multiple hidden></div>
         <div class="ugal" id="unitGal"></div>
         <div class="upstat" id="unitStat" hidden></div>
@@ -733,7 +738,7 @@ html{-webkit-text-size-adjust:100%}
     <div class="upbar" id="upBar">
       <label class="btn primary" for="matFile">+ 파일 올리기</label>
       <input type="file" id="matFile" multiple accept="image/png,image/jpeg,image/gif,image/webp,.pdf,.xls,.xlsx,.ppt,.pptx,.doc,.docx">
-      <span>사진(JPG·PNG), PDF, 엑셀, PPT, 워드 · 복사한 사진은 Ctrl+V(⌘V)로 붙여넣기</span>
+      <span>사진(JPG·PNG), PDF, 엑셀, PPT, 워드 · 이 창에 끌어다 놓거나, 복사한 사진은 Ctrl+V(⌘V)로 붙여넣기</span>
     </div>
     <p class="upbar" id="upNo" hidden>파일을 올릴 권한이 없습니다. 참여자 이상 권한이 필요합니다.</p>
     <div class="upstat" id="upStat" hidden></div>
@@ -741,6 +746,8 @@ html{-webkit-text-size-adjust:100%}
     <div class="gal" id="matGal"></div>
     <div class="sect">문서</div>
     <div class="docs" id="matDocs"></div>
+    <div class="sect" id="repAttSect" hidden>정비 이력 첨부 · 이 장비</div>
+    <div class="docs" id="matRepAtt" hidden></div>
   </div>
 </div>
 <div class="lightbox" id="lb" hidden role="dialog" aria-label="사진 보기">
@@ -1206,7 +1213,7 @@ function renderRows(){
       mb.onclick=e=>{e.stopPropagation();F.model=F.model===i.model?"":i.model;shown=PAGE;renderRows();window.scrollTo({top:0,behavior:"smooth"})};mb.onkeydown=e=>e.stopPropagation();m.append(mb)}else m.textContent="—";
     if(!blank(i.manufacturer))m.prepend(el("small",null,i.manufacturer));row.append(m);
     row.append(cellCell(i,"location","loc"),el("span","asg",i.assign||""));
-    const aidEl=el("span","aid",i.assetId||"—");if(mats.some(m=>m.itemId===i.id&&m.kind==="image")){const c=el("span","camtag","📷");c.title="이 장비 사진 있음";aidEl.append(c)}
+    const aidEl=el("span","aid",i.assetId||"—");if(mats.some(m=>m.itemId===i.id&&m.kind==="image"&&!m.repId)){const c=el("span","camtag","📷");c.title="이 장비 사진 있음";aidEl.append(c)}
     row.append(cellCell(i,"usage","st"),aidEl);
     row.append(labelCell(i));
     row.onclick=()=>openPanel(i);row.onkeydown=e=>{if(e.target!==row)return;if(e.key==="Enter"||e.key===" "){e.preventDefault();openPanel(i)}};
@@ -1511,8 +1518,8 @@ function repLine(r){const s=repState(r);return [r.failedAt?"고장 "+r.failedAt:
 function repSummary(a){return (Array.isArray(a)?a:[]).map(repLine).join("\n")}
 function cleanRepairs(a){return a.map(r=>{const o={id:r.id};REP_F.forEach(([k])=>o[k]=String(r[k]||"").trim());const s=repState(r);if(r.status||s==="fail")o.status=s;return o}).filter(r=>REP_F.some(([k])=>r[k]))
   .sort((x,y)=>String(y.failedAt||"").localeCompare(String(x.failedAt||"")))}
-function repairsUI(box,list,canEd){
-  const rr=()=>repairsUI(box,list,canEd);
+function repairsUI(box,list,canEd,owner){
+  const rr=()=>repairsUI(box,list,canEd,owner);
   box.replaceChildren();
   const vendors=uniq(items.flatMap(i=>(i.repairs||[]).map(r=>r.vendor)).concat(mics.flatMap(m=>(m.repairs||[]).map(r=>r.vendor))));
   $("dl-vendor").replaceChildren(...vendors.map(v=>{const o=document.createElement("option");o.value=v;return o}));
@@ -1525,7 +1532,8 @@ function repairsUI(box,list,canEd){
       top.append(el("span","rmdate",r.failedAt||"날짜 없음"),el("span","rmsym",r.symptom||"(증상 없음)"),
         el("span","repstate "+rs,rs==="open"?"진행중":(rs==="fail"?"불가":"완료")+(r.doneAt?" "+r.doneAt:"")));
       c.append(top);
-      const sub=[r.work,r.vendor].filter(Boolean).join(" · ");if(sub)c.append(el("div","rmsub",sub));
+      const sub=[r.work,r.vendor].filter(Boolean).join(" · ");const na=repAtts(r.id).length;
+      if(sub||na){const sd=el("div","rmsub",sub);if(na)sd.append(el("span","rmatt","📎 첨부 "+na));c.append(sd)}
       c.onclick=()=>{if(!canEd)return;r._open=true;rr()};
       if(!canEd)c.style.cursor="default";
       box.append(c);return;
@@ -1549,10 +1557,70 @@ function repairsUI(box,list,canEd){
     const two1=el("div","two");two1.append(mk("failedAt","고장일","input",{type:"date"}),mk("doneAt","완료·불가 판정일","input",{type:"date"}));
     c.append(two1,mk("symptom","증상","input",{placeholder:"예: 트위터 소리 안남"}),mk("work","수리내용","textarea",{rows:2,placeholder:"예: 트위터 드라이버 교체"}));
     const v=mk("vendor","수리업체","input",{placeholder:"예: 메이사운드"});v.querySelector("input").setAttribute("list","dl-vendor");c.append(v);
+    const at=el("div","ratt");at.dataset.rep=r.id;at._canEd=canEd;at._owner=owner;c.append(at);renderRepAtt(at);
     paint();box.append(c);
   });
 }
-function renderRepairs(){repairsUI($("repList"),repairs,canWrite)}
+/* ---------- 파일 끌어다 놓기 ---------- */
+const hasFiles=e=>e.dataTransfer&&[...(e.dataTransfer.types||[])].includes("Files");
+function dropZone(node,onFiles,canDrop){
+  if(node._dz)return;node._dz=true;let depth=0;
+  node.addEventListener("dragenter",e=>{if(!hasFiles(e)||(canDrop&&!canDrop()))return;e.preventDefault();e.stopPropagation();depth++;node.classList.add("dropover")});
+  node.addEventListener("dragover",e=>{if(!hasFiles(e)||(canDrop&&!canDrop()))return;e.preventDefault();e.stopPropagation();e.dataTransfer.dropEffect="copy"});
+  node.addEventListener("dragleave",e=>{if(!hasFiles(e))return;depth=Math.max(0,depth-1);if(!depth)node.classList.remove("dropover")});
+  node.addEventListener("drop",e=>{if(!hasFiles(e)||(canDrop&&!canDrop()))return;e.preventDefault();e.stopPropagation();depth=0;node.classList.remove("dropover");
+    const files=[...e.dataTransfer.files];if(files.length)onFiles(files)});
+}
+// 정해진 곳 밖에 떨어뜨려도 브라우저가 파일을 열어 버리지 않게
+["dragover","drop"].forEach(t=>window.addEventListener(t,e=>{if(hasFiles(e)&&(!$("overlay").hidden||!$("matOverlay").hidden||!$("micOverlay").hidden)){e.preventDefault();if(t==="drop")toast("사진·첨부 칸 위에 놓아 주세요")}}));
+
+/* ---------- 정비 기록 첨부 (견적서·명세서 등) ---------- */
+const repAtts=id=>id?mats.filter(m=>m.repId===id).sort((a,b)=>String(a.at).localeCompare(String(b.at))):[];
+const ownerEq=()=>editing&&editing.id?{itemId:editing.id,assetIdOf:editing.assetId||"",key:keyOf(editing.manufacturer,editing.model)||"",manufacturer:editing.manufacturer||"",model:editing.model||""}:null;
+const ownerMic=()=>editMic&&editMic._id?{micId:editMic._id,assetIdOf:micTitle(editMic),key:"",manufacturer:"",model:editMic.model||""}:null;
+function attRow(m,meta){
+  const r=el("div","doc");const e=(m.ext||extOf(m.name)||"").toLowerCase();
+  const cls=e==="pdf"?"ft-pdf":e.startsWith("xls")?"ft-xls":e.startsWith("ppt")?"ft-ppt":m.kind==="image"?"ft-img":"ft-doc";
+  r.append(el("span","ftype "+cls,m.kind==="image"?"IMG":e.toUpperCase()));
+  const info=el("div");info.style.minWidth="0";info.append(el("div","dname",m.name||"(이름 없음)"));
+  info.append(el("div","dmeta",[meta,fmtSize(m.size||0),m.at?new Date(m.at).toLocaleDateString("ko-KR"):""].filter(Boolean).join(" · ")));r.append(info);
+  const a=el("div","dacts");
+  if(!m.encoded){if(m.kind==="image"){const o=el("button","btn","보기");o.type="button";o.onclick=()=>openLb([m],0);a.append(o)}
+    else{const o=document.createElement("a");o.className="btn";o.href=blobUrl(m.assetId);o.target="_blank";o.rel="noopener";o.textContent="열기";a.append(o)}}
+  if(dlNs){const sv=el("button","btn","다운로드");sv.type="button";sv.onclick=()=>saveMat(m,sv);a.append(sv)}
+  if(canDelMat(m)){const x=el("button","btn danger","삭제");x.type="button";x.onclick=()=>delMat(m);a.append(x)}
+  r.append(a);return r;
+}
+function renderRepAtt(box){
+  const id=box.dataset.rep,canEd=box._canEd,owner=box._owner&&box._owner();box.replaceChildren();
+  const head=el("div","ratthead");head.append(el("b",null,"첨부파일 (견적서·명세서 등)"));
+  const list=repAtts(id);
+  if(canEd&&assetsNs){
+    if(owner){const lab=el("label","btn","+ 첨부");const inp=document.createElement("input");inp.type="file";inp.multiple=true;inp.hidden=true;
+      inp.accept="image/png,image/jpeg,image/gif,image/webp,.pdf,.xls,.xlsx,.ppt,.pptx,.doc,.docx";
+      const fid="ratt-"+id;inp.id=fid;lab.htmlFor=fid;lab.tabIndex=0;head.append(lab,inp);
+      inp.onchange=()=>{const files=[...inp.files];inp.value="";uploadRepAtt(files,id,owner,box)};head.append(el("span","dropnote","또는 여기로 끌어다 놓기"))}
+    else head.append(el("span","hint","저장한 뒤에 첨부할 수 있습니다."))}
+  box.append(head);
+  const st=el("div","upstat");st.hidden=true;st.className="upstat rattstat";box.append(st);
+  dropZone(box,files=>{const o=box._owner&&box._owner();if(!o){toast("저장한 뒤에 첨부할 수 있습니다");return}uploadRepAtt(files,box.dataset.rep,o,box)},()=>box._canEd&&!!assetsNs);
+  list.forEach(m=>box.append(attRow(m,"")));
+  if(!list.length&&!(canEd&&assetsNs))box.hidden=true;else box.hidden=false;
+}
+async function uploadRepAtt(files,repId,owner,box){
+  if(!files.length)return;const st=box.querySelector(".rattstat");st.hidden=false;st.className="upstat rattstat";const fails=[];let ok=0;
+  const keep=matKey;matKey=owner.key||null;
+  for(let i=0;i<files.length;i++){st.textContent="올리는 중… ("+(i+1)+"/"+files.length+") "+files[i].name;
+    try{await uploadOne(files[i],null,Object.assign({repId},owner));ok++}
+    catch(err){fails.push(files[i].name+": "+(err&&err.code==="heic"?"아이폰 HEIC 사진은 올릴 수 없습니다.":assetErr(err)))}}
+  matKey=keep;
+  if(fails.length){st.className="upstat bad rattstat";st.textContent=(ok?ok+"개 올림. ":"")+"실패: "+fails.join(" / ")}
+  else{st.textContent="첨부 "+ok+"개를 올렸습니다."}
+  if(ok){const tgt=owner.itemId?{id:owner.itemId,assetId:owner.assetIdOf,type:(editing&&editing.type)||""}:{id:owner.micId,assetId:owner.assetIdOf,type:"핀마이크"};
+    logHistory("edit",tgt.id,{assetId:tgt.assetId,type:tgt.type},[{field:"repAtt",from:"",to:"정비 첨부 "+files.filter(f=>!fails.some(x=>x.startsWith(f.name+":"))).map(f=>f.name).join(", ")}])}
+}
+function refreshRepAtts(){document.querySelectorAll(".ratt[data-rep]").forEach(b=>{if(b.isConnected)renderRepAtt(b)})}
+function renderRepairs(){repairsUI($("repList"),repairs,canWrite,ownerEq)}
 $("repAdd").onclick=()=>{repairs.unshift({id:Math.random().toString(36).slice(2,9),failedAt:todayStr(),symptom:"",work:"",doneAt:"",vendor:"",_open:true});renderRepairs();
   setTimeout(()=>{const f=document.getElementById("rep-"+repairs[0].id+"-symptom");if(f)f.focus()},0)};
 
@@ -1728,7 +1796,7 @@ function hItem(h,showItem,onDel){
   }
   if(h.action==="edit"&&h.changes&&h.changes.length){
     const g=el("div","hch");h.changes.forEach(c=>{
-      const ALLK=HKEYS.concat(MKEYS.map(([k,l])=>["m_"+k,l]),FKEYS.map(([k,l])=>["f_"+k,l]),[["unitPhoto","사진"]]);
+      const ALLK=HKEYS.concat(MKEYS.map(([k,l])=>["m_"+k,l]),FKEYS.map(([k,l])=>["f_"+k,l]),[["unitPhoto","사진"],["repAtt","정비 첨부"]]);
       const lab=(ALLK.find(x=>x[0]===c.field)||[c.field,c.field])[1];
       const v=el("span","v");const f=showVal(c.field,c.from),t=showVal(c.field,c.to);
       v.append(el("s",null,f||"(없음)")," → ",t||"(없음)");g.append(el("span","k",lab),v)});
@@ -1802,8 +1870,8 @@ const keyOf=(mf,md)=>{md=String(md||"").trim();if(blank(md))return null;return (
 const fmtSize=b=>b>=1048576?(b/1048576).toFixed(1)+"MB":Math.max(1,Math.round(b/1024))+"KB";
 const blobUrl=id=>KFV.assetUrl(id);
 function curKey(){return keyOf(val("manufacturer"),val("model"))}
-function matsFor(k){return mats.filter(m=>m.key===k&&!m.itemId).sort((a,b)=>String(a.at).localeCompare(String(b.at)))} // 모델 공통 자료
-function unitImages(id){return id?mats.filter(m=>m.itemId===id&&m.kind==="image").sort((a,b)=>String(a.at).localeCompare(String(b.at))):[]} // 이 장비 사진
+function matsFor(k){return mats.filter(m=>m.key===k&&!m.itemId&&!m.repId).sort((a,b)=>String(a.at).localeCompare(String(b.at)))} // 모델 공통 자료
+function unitImages(id){return id?mats.filter(m=>m.itemId===id&&m.kind==="image"&&!m.repId).sort((a,b)=>String(a.at).localeCompare(String(b.at))):[]} // 이 장비 사진
 function imagesFor(k){const im=matsFor(k).filter(m=>m.kind==="image");const c=im.find(m=>m.cover);return c?[c,...im.filter(m=>m!==c)]:im}
 function imgEl(m,alt){
   const i=document.createElement("img");i.src=blobUrl(m.assetId);i.alt=alt||m.name||"";i.loading="lazy";i.decoding="async";
@@ -1815,7 +1883,7 @@ function renderCover(){
   box.disabled=false;btn.disabled=false;
   const all=matsFor(k),im=imagesFor(k);
   if(im.length)box.append(imgEl(im[0],"모델 사진"));else box.textContent=assetsNs?"사진 없음 · 눌러서 올리기":"사진 없음";
-  btn.textContent="장비 관련 자료"+(all.length?" ("+all.length+")":"");
+  const nra=editing&&editing.id?mats.filter(m=>m.repId&&m.itemId===editing.id).length:0;btn.textContent="장비 관련 자료"+(all.length+nra?" ("+(all.length+nra)+")":"");
   renderUnit();
 }
 function renderUnit(){
@@ -1862,6 +1930,11 @@ function renderMats(){
     if(canDelMat(m)){const x=el("button","btn danger","삭제");x.type="button";x.onclick=()=>delMat(m);a.append(x)}
     r.append(a);d.append(r);
   });
+  // 정비 이력 첨부 (지금 열어 둔 장비)
+  const ra=editing&&editing.id?mats.filter(m=>m.repId&&m.itemId===editing.id).sort((a,b)=>String(b.at).localeCompare(String(a.at))):[];
+  $("repAttSect").hidden=$("matRepAtt").hidden=!ra.length;const rbox=$("matRepAtt");rbox.replaceChildren();
+  const reps=ra.length?(repairs&&repairs.length?repairs:(editing.repairs||[])):[];
+  ra.forEach(m=>{const r=reps.find(x=>x.id===m.repId);rbox.append(attRow(m,r?"정비 "+(r.failedAt||"")+(r.symptom?" "+r.symptom:""):"삭제된 정비 기록"))});
   if(user&&metaWho.length){const ids=[...new Set(metaWho.map(x=>x.h.by).filter(Boolean))];if(ids.length)getProfiles(ids).then(ps=>metaWho.forEach(x=>{const nm=x.h.by&&ps[x.h.by]&&ps[x.h.by].name;if(nm)x.who.textContent=" · "+nm})).catch(()=>{})}
 }
 // 사진 크게 보기
@@ -1873,9 +1946,9 @@ function showLb(){
   $("lbName").textContent=(m.name||"")+"  ("+(lbIdx+1)+"/"+lbList.length+")";
   $("lbPrev").hidden=$("lbNext").hidden=lbList.length<2;
   const a=$("lbActs");a.replaceChildren();
-  if(canWrite&&db&&!m.itemId&&!m.cover&&lbIdx!==0){const c=el("button","btn","대표 사진으로");c.type="button";c.onclick=()=>setCover(m);a.append(c)}
-  if(canWrite&&db&&m.itemId){const c=el("button","btn","모델 공통으로 옮기기");c.type="button";c.title="같은 모델 장비 모두에 보이게 합니다";c.onclick=()=>moveMat(m,null);a.append(c)}
-  else if(canWrite&&db&&!m.itemId&&editing&&editing.id&&!$("overlay").hidden&&keyOf(editing.manufacturer,editing.model)===m.key){const c=el("button","btn","이 장비 사진으로 옮기기");c.type="button";c.title=(editing.assetId||"이 장비")+"에만 보이게 합니다";c.onclick=()=>moveMat(m,editing);a.append(c)}
+  if(canWrite&&db&&!m.itemId&&!m.repId&&!m.cover&&lbIdx!==0){const c=el("button","btn","대표 사진으로");c.type="button";c.onclick=()=>setCover(m);a.append(c)}
+  if(canWrite&&db&&m.itemId&&!m.repId){const c=el("button","btn","모델 공통으로 옮기기");c.type="button";c.title="같은 모델 장비 모두에 보이게 합니다";c.onclick=()=>moveMat(m,null);a.append(c)}
+  else if(canWrite&&db&&!m.itemId&&!m.repId&&editing&&editing.id&&!$("overlay").hidden&&keyOf(editing.manufacturer,editing.model)===m.key){const c=el("button","btn","이 장비 사진으로 옮기기");c.type="button";c.title=(editing.assetId||"이 장비")+"에만 보이게 합니다";c.onclick=()=>moveMat(m,editing);a.append(c)}
   if(dlNs){const s=el("button","btn","다운로드");s.type="button";s.onclick=()=>saveMat(m,s);a.append(s)}
   if(canDelMat(m)){const x=el("button","btn danger","삭제");x.type="button";x.onclick=()=>delMat(m);a.append(x)}
   const cl=el("button","btn","닫기");cl.type="button";cl.onclick=closeLb;a.append(cl);
@@ -1926,7 +1999,7 @@ async function shrinkImage(file){
     let b=await new Promise(r=>c.toBlob(r,"image/webp",0.85));if(!b||b.type!=="image/webp")b=await new Promise(r=>c.toBlob(r,"image/jpeg",0.86));return b&&b.size<file.size?b:file;
   }catch(_){return file}
 }
-async function uploadOne(file,itemId){
+async function uploadOne(file,itemId,extra){
   const e=extOf(file.name);
   if(e==="heic"||e==="heif")throw {code:"heic"};
   let kind,blob,type,encoded=false,mime;
@@ -1939,9 +2012,10 @@ async function uploadOne(file,itemId){
   }else throw {code:"unsupported_type"};
   const r=await assetsNs.upload(blob,{type});
   const doc={key:matKey,manufacturer:val("manufacturer"),model:val("model"),name:file.name,ext:e,kind,mime,assetId:r.id,size:file.size,encoded,cover:false,at:new Date().toISOString()};
+  if(extra)Object.assign(doc,extra);
   if(itemId){doc.itemId=itemId;doc.assetIdOf=(editing&&editing.assetId)||"";if(!doc.key)doc.key=curKey()||""}
   if(myId)doc.by=myId;
-  await db.collection("materials").add(doc);
+  const ref=await db.collection("materials").add(doc);return ref;
 }
 async function uploadFiles(files){
   if(!files.length||!assetsNs||!db||!matKey)return;
@@ -1955,8 +2029,12 @@ async function uploadFiles(files){
   else{st.textContent=ok+"개 파일을 올렸습니다.";setTimeout(()=>{if(st.textContent.endsWith("올렸습니다."))st.hidden=true},3000)}
 }
 $("matFile").addEventListener("change",ev=>{const files=[...ev.target.files];ev.target.value="";uploadFiles(files)});
-$("unitFile").addEventListener("change",async ev=>{
-  const files=[...ev.target.files];ev.target.value="";if(!files.length||!assetsNs||!db||!editing||!editing.id)return;
+dropZone(document.querySelector("#matOverlay .panel"),files=>uploadFiles(files),()=>!!assetsNs&&!!matKey);
+$("unitFile").addEventListener("change",ev=>{const files=[...ev.target.files];ev.target.value="";uploadUnit(files)});
+dropZone($("unitBox"),files=>uploadUnit(files.filter(f=>/^image\//.test(f.type)||IMG_TYPES[extOf(f.name)])),()=>canWrite&&!!assetsNs&&!!editing&&!!editing.id);
+async function uploadUnit(files){
+  if(!files.length){toast("사진 파일만 놓을 수 있습니다");return}
+  if(!assetsNs||!db||!editing||!editing.id)return;
   const id=editing.id,st=$("unitStat");st.hidden=false;st.className="upstat";const fails=[];let ok=0;matKey=curKey();
   for(let i=0;i<files.length;i++){st.textContent="올리는 중… ("+(i+1)+"/"+files.length+")";
     try{if(!IMG_TYPES[extOf(files[i].name)]&&!/^image\//.test(files[i].type))throw {code:"unsupported_type"};
@@ -1966,7 +2044,7 @@ $("unitFile").addEventListener("change",async ev=>{
   if(fails.length){st.className="upstat bad";st.textContent=(ok?ok+"장 올림. ":"")+"실패: "+fails.join(" / ")}
   else{st.textContent="이 장비 사진 "+ok+"장을 올렸습니다.";setTimeout(()=>{st.hidden=true},2500)}
   if(ok&&editing)logHistory("edit",editing.id,{assetId:editing.assetId,type:editing.type},[{field:"unitPhoto",from:"",to:"이 장비 사진 "+ok+"장 추가"}]);
-});
+}
 // 엑셀·캡처 등에서 복사한 사진을 Ctrl+V(⌘V)로 붙여넣기
 document.addEventListener("paste",e=>{
   const panelOpen=!$("overlay").hidden,matOpen=!$("matOverlay").hidden;
@@ -2003,7 +2081,7 @@ async function moveMat(m,item){
   }catch(err){toast(errMsg(err))}
 }
 async function delMat(m){
-  const ok=await askConfirm("이 파일을 삭제할까요?",(m.name||"")+(m.itemId?" · 이 장비의 사진입니다.":" · 같은 모델의 모든 장비에서 사라집니다."),null,null,"삭제");
+  const ok=await askConfirm("이 파일을 삭제할까요?",(m.name||"")+(m.repId?" · 정비 기록 첨부파일입니다.":m.itemId?" · 이 장비의 사진입니다.":" · 같은 모델의 모든 장비에서 사라집니다."),null,null,"삭제");
   if(!ok)return;
   try{
     let assetLeft=false;
@@ -2402,7 +2480,7 @@ function openMic(m){
   dl("dl-mvenue",uniq(mics.map(x=>x.venue)));dl("dl-mkind",uniq(["PACK","PIN","HAND"].concat(mics.map(x=>x.kind))));dl("dl-mmodel",uniq(mics.map(x=>x.model)));
   $("m-status").replaceChildren(...MSTAT.map(x=>new Option(x.label||x.id,x.id)));
   MFIELDS.forEach(k=>$("m-"+k).value=base[k]??"");syncMicStorage();
-  micRepairs=JSON.parse(JSON.stringify(base.repairs||[])).map(r=>Object.assign({id:r.id||Math.random().toString(36).slice(2,9)},r));repairsUI($("mRepList"),micRepairs,canWrite);
+  micRepairs=JSON.parse(JSON.stringify(base.repairs||[])).map(r=>Object.assign({id:r.id||Math.random().toString(36).slice(2,9)},r));repairsUI($("mRepList"),micRepairs,canWrite,ownerMic);
   $("m-err").hidden=true;$("micConfirm").hidden=true;$("micDel").hidden=!m||!canWrite;$("micSave").hidden=!canWrite;
   [...$("micForm").elements].forEach(e=>{if(e.id&&e.id.startsWith("m-"))e.disabled=!canWrite});$("mRepAdd").hidden=!canWrite;
   const meta=$("m-meta");meta.hidden=!(m&&m.updatedAt);if(m&&m.updatedAt)meta.textContent="마지막 수정: "+new Date(m.updatedAt).toLocaleString("ko-KR");
@@ -2410,7 +2488,7 @@ function openMic(m){
   $("micOverlay").hidden=false;$("micForm").scrollTop=0;
   setTimeout(()=>{$(m?"m-status":"m-venue").focus({preventScroll:true});$("micForm").scrollTop=0},0);
 }
-$("mRepAdd").onclick=()=>{micRepairs.unshift({id:Math.random().toString(36).slice(2,9),failedAt:todayStr(),symptom:"",work:"",doneAt:"",vendor:"",_open:true});repairsUI($("mRepList"),micRepairs,canWrite);
+$("mRepAdd").onclick=()=>{micRepairs.unshift({id:Math.random().toString(36).slice(2,9),failedAt:todayStr(),symptom:"",work:"",doneAt:"",vendor:"",_open:true});repairsUI($("mRepList"),micRepairs,canWrite,ownerMic);
   setTimeout(()=>{const f=document.getElementById("rep-"+micRepairs[0].id+"-symptom");if(f)f.focus()},0)};
 function closeMic(){$("micOverlay").hidden=true;editMic=null}
 async function requestCloseMic(){
@@ -2754,7 +2832,7 @@ render();
   db.doc("settings/locgroups").onSnapshot(s=>{if(s.exists&&Array.isArray(s.data().groups)&&s.data().groups.length){locGroups=s.data().groups;renderFilters()}},()=>{});
   db.doc("micmeta/main").onSnapshot(s=>{const d=s.exists?s.data():{};blxTable=Array.isArray(d.blx)?d.blx:[];ewStored=Array.isArray(d.ew)?d.ew:[];renderFreqs()},()=>{});
   route();
-  db.collection("materials").onSnapshot(s=>{mats=s.docs.map(x=>Object.assign({_id:x.id},x.data()));if(!$("overlay").hidden)renderCover();renderMats();if(!$("modelModal").hidden&&$("overlay").hidden)refreshModelModal();if(!$("eqList").hidden)renderRows()},()=>{});
+  db.collection("materials").onSnapshot(s=>{mats=s.docs.map(x=>Object.assign({_id:x.id},x.data()));if(!$("overlay").hidden)renderCover();renderMats();refreshRepAtts();if(!$("modelModal").hidden&&$("overlay").hidden)refreshModelModal();if(!$("eqList").hidden)renderRows()},()=>{});
   db.doc("codes/table").onSnapshot(s=>{codes=(s.exists&&Array.isArray(s.data().entries))?s.data().entries:[];if(!$("overlay").hidden)refreshPreview();renderFilters()},()=>{});
   db.collection("equipment").onSnapshot(snap=>{
     items=snap.docs.map(x=>Object.assign({id:x.id},x.data()));loaded=true;
