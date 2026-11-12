@@ -1509,7 +1509,7 @@ function repairsUI(box,list,canEd){
       const rs=repState(r);const c=el("button","repmini"+(rs==="done"?"":" "+rs));c.type="button";c.title=canEd?"눌러서 수정":"";
       const top=el("div","rmtop");
       top.append(el("span","rmdate",r.failedAt||"날짜 없음"),el("span","rmsym",r.symptom||"(증상 없음)"),
-        el("span","repstate "+rs,rs==="open"?"진행중":(rs==="fail"?"불가":"완료")+(r.doneAt?" "+r.doneAt.slice(5).replace("-","/"):"")));
+        el("span","repstate "+rs,rs==="open"?"진행중":(rs==="fail"?"불가":"완료")+(r.doneAt?" "+r.doneAt:"")));
       c.append(top);
       const sub=[r.work,r.vendor].filter(Boolean).join(" · ");if(sub)c.append(el("div","rmsub",sub));
       c.onclick=()=>{if(!canEd)return;r._open=true;rr()};
