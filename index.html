@@ -330,6 +330,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .mcode{font-family:var(--font-mono);font-weight:600;font-size:13px}
 .mmodel,.muser,.mcheck,.mplace,.mbought{font-size:13px;overflow-wrap:anywhere;min-width:0}
 .mbought,.mplace{color:var(--muted)}
+.mplace .mstore{color:var(--fg);font-weight:600}
 .mcheck b{font-weight:700;font-size:11.5px;color:var(--accent);margin-right:2px}
 .fmodel,.fnote{font-size:13px;overflow-wrap:anywhere;min-width:0}
 .fnote{color:var(--muted)}
@@ -484,7 +485,7 @@ html{-webkit-text-size-adjust:100%}
       <div class="resbar"><span><b id="micCount">0</b>개 표시</span><span class="legend">분류 칩을 누르면 바로 바꿀 수 있습니다</span></div>
     </div>
       <section class="list" aria-label="마이크 목록">
-        <div class="mgrid head"><span>종류</span><span>번호</span><span>모델</span><span>구매</span><span>주 사용자</span><span>최근 수리</span><span>분류</span><span>보관·상태</span></div>
+        <div class="mgrid head"><span>종류</span><span>번호</span><span>모델</span><span>구매</span><span>주 사용자</span><span>최근 수리</span><span>분류</span><span>보관 위치 · 상태</span></div>
         <div id="micRows"></div>
       </section>
     </div>
@@ -723,9 +724,10 @@ html{-webkit-text-size-adjust:100%}
       <div class="field"><label for="m-lastUser">주 사용자</label><input id="m-lastUser" placeholder="예: 조살수 김씨"></div>
     </div>
     <div class="field"><label for="m-status">분류</label><select id="m-status"></select></div>
+    <div class="field"><label for="m-storage-sel">보관 위치</label><div class="pick"><select id="m-storage-sel" aria-label="보관 위치 선택"></select><input id="m-storage" placeholder="새 보관 위치 이름" aria-label="새 보관 위치 이름" hidden></div></div>
     <div class="sect sect-row"><span>수리 내역</span><button type="button" class="btn" id="mRepAdd">+ 수리 기록 추가</button></div>
     <div class="reps" id="mRepList"></div>
-    <div class="field"><label for="m-place">보관·상태</label><textarea id="m-place" rows="2" placeholder="예: 방송실 보관 / 실리콘튜브"></textarea></div>
+    <div class="field"><label for="m-place">상태 메모</label><textarea id="m-place" rows="2" placeholder="예: 실리콘튜브 교체 필요"></textarea></div>
     <div class="field"><label for="m-memo">메모</label><textarea id="m-memo" rows="2"></textarea></div>
     <p class="meta" id="m-meta" hidden></p>
     <div id="micConfirm" class="confirm" hidden><span>이 마이크를 삭제할까요? 되돌릴 수 없습니다.</span><button type="button" class="btn danger" id="micConfirmDel">삭제</button><button type="button" class="btn" id="micCancelDel">취소</button></div>
@@ -2141,9 +2143,9 @@ async function exportXlsx(dl){
     sm.pageSetup={orientation:"portrait",paperSize:9,fitToPage:true,fitToWidth:1,fitToHeight:0};
     // 3. 핀마이크
     table("핀마이크","핀마이크 관리 대장",ds+" 기준 · 마이크 "+mics.length+"개",
-      ["사용처","종류","번호","모델","구매","주 사용자","분류","보관·상태","수리 내역","메모"],
-      mics.slice().sort((a,b)=>(a.seq??1e9)-(b.seq??1e9)).map(m=>[m.venue||"",m.kind||"",m.code||"",m.model||"",m.bought||"",m.lastUser||"",m.status||"미지정",m.place||"",repSummary(m.repairs),m.memo||""]),
-      [12,8,10,16,12,22,9,30,40,24],7);
+      ["사용처","종류","번호","모델","구매","주 사용자","분류","보관 위치","상태 메모","수리 내역","메모"],
+      mics.slice().sort((a,b)=>(a.seq??1e9)-(b.seq??1e9)).map(m=>[m.venue||"",m.kind||"",m.code||"",m.model||"",m.bought||"",m.lastUser||"",m.status||"미지정",m.storage||"",m.place||"",repSummary(m.repairs),m.memo||""]),
+      [12,8,10,16,12,22,9,12,30,40,24],7);
     // 4. 주파수
     const fl=freqs.slice().sort((a,b)=>(a.seq??1e9)-(b.seq??1e9));
     const fws=table("주파수","무선 주파수 관리",ds+" 기준 · 주파수 "+fl.length+"개",
@@ -2166,7 +2168,7 @@ async function exportXlsx(dl){
 let mics=[],freqs=[],blxTable=[],micLoaded=false,freqLoaded=false;
 const MSTAT=[{id:"정상",cls:"u-move"},{id:"보관",cls:"u-wait"},{id:"스페어",cls:"u-spare"},{id:"수리",cls:"u-repair"},{id:"고장",cls:"u-broken"},{id:"폐기",cls:"u-disposed"},{id:"",label:"미지정",cls:"u-none"}];
 const mstatOf=s=>MSTAT.find(x=>x.id===(s||""))||MSTAT[MSTAT.length-1];
-const MKEYS=[["venue","사용처"],["kind","종류"],["code","번호"],["model","모델"],["bought","구매일자"],["lastUser","주 사용자"],["status","분류"],["verdict","수리·업체 판정"],["place","보관·상태"],["memo","메모"],["repairs","수리 내역"]];
+const MKEYS=[["venue","사용처"],["kind","종류"],["code","번호"],["model","모델"],["bought","구매일자"],["lastUser","주 사용자"],["status","분류"],["verdict","수리·업체 판정"],["storage","보관 위치"],["place","상태 메모"],["memo","메모"],["repairs","수리 내역"]];
 const FKEYS=[["place","장소"],["model","무선모델"],["ch","채널"],["group","그룹"],["mhz","주파수"],["note","비고"],["remark","특이사항"]];
 const MF={q:"",venue:"",kind:"",status:"*"};
 let micSub="mic";
@@ -2208,7 +2210,7 @@ $("subFreq").onclick=()=>{location.hash="freqs"};
 function micVisible(){
   const q=MF.q.trim().toLowerCase();
   return mics.filter(m=>(!MF.venue||m.venue===MF.venue)&&(!MF.kind||m.kind===MF.kind)&&(MF.status==="*"||(m.status||"")===MF.status)&&
-    (!q||searchHit([m.code,m.model,m.lastUser,m.place,m.memo,m.venue,m.kind,checksSummary(m.checks),repSummary(m.repairs)],q)))
+    (!q||searchHit([m.code,m.model,m.lastUser,m.storage,m.place,m.memo,m.venue,m.kind,checksSummary(m.checks),repSummary(m.repairs)],q)))
    .sort((a,b)=>(a.seq??1e9)-(b.seq??1e9));
 }
 function renderMics(){
@@ -2236,7 +2238,7 @@ function renderMics(){
     const lr=(m.repairs||[]).slice().sort((x,y)=>String(y.doneAt||y.failedAt||"").localeCompare(String(x.doneAt||x.failedAt||"")))[0];
     const ck=el("span","mcheck");if(lr){ck.append(el("b",null,lr.doneAt?"완료 "+lr.doneAt.slice(2).replace(/-/g,"."):"진행중"),document.createTextNode(" "+[lr.symptom,lr.work,lr.vendor].filter(Boolean).join(" · ")))}row.append(ck);
     row.append(micStatCell(m));
-    const pl=el("span","mplace",m.place||"");row.append(pl);
+    const pl=el("span","mplace");if(m.storage)pl.append(el("b","mstore",m.storage));if(m.place)pl.append(document.createTextNode((m.storage?" · ":"")+m.place));row.append(pl);
     row.onclick=()=>openMic(m);row.onkeydown=e=>{if(e.target!==row)return;if(e.key==="Enter"||e.key===" "){e.preventDefault();openMic(m)}};
     frag.append(row);
   });
@@ -2269,7 +2271,13 @@ $("mq").oninput=e=>{MF.q=e.target.value;renderMics()};
 
 /* ---------- 마이크 편집 ---------- */
 let editMic=null,micRepairs=[],micSnap="";
-const MFIELDS=["venue","kind","code","model","bought","lastUser","status","place","memo"];
+const MFIELDS=["venue","kind","code","model","bought","lastUser","status","storage","place","memo"];
+/* 보관 위치: 기본 목록 + 이미 쓴 이름 + 새로 입력 */
+const MSTORE=["방송실","조정실","관아","공터","속촌괴담"];
+function syncMicStorage(){const sel=$("m-storage-sel"),inp=$("m-storage"),v=inp.value.trim();
+  const opts=uniq(MSTORE.concat(mics.map(x=>x.storage).filter(Boolean).sort(byKo)));if(v&&!opts.includes(v))opts.push(v);
+  sel.replaceChildren(new Option("보관 위치 선택 (없음)",""),...opts.map(o=>new Option(o,o)),new Option("+ 추가하기…",NEW));sel.value=v;inp.hidden=true}
+$("m-storage-sel").addEventListener("change",e=>{const inp=$("m-storage");if(e.target.value===NEW){inp.value="";inp.hidden=false;inp.focus()}else{inp.value=e.target.value;inp.hidden=true}});
 function micFormSnap(){return JSON.stringify([MFIELDS.map(k=>$("m-"+k).value),cleanRepairs(micRepairs)])}
 function openMic(m){
   editMic=m||null;$("micFormTitle").textContent=m?micTitle(m):"마이크 추가";
@@ -2277,7 +2285,7 @@ function openMic(m){
   const dl=(id,vals)=>$(id).replaceChildren(...vals.map(v=>{const o=document.createElement("option");o.value=v;return o}));
   dl("dl-mvenue",uniq(mics.map(x=>x.venue)));dl("dl-mkind",uniq(["PACK","PIN","HAND"].concat(mics.map(x=>x.kind))));dl("dl-mmodel",uniq(mics.map(x=>x.model)));
   $("m-status").replaceChildren(...MSTAT.map(x=>new Option(x.label||x.id,x.id)));
-  MFIELDS.forEach(k=>$("m-"+k).value=base[k]??"");
+  MFIELDS.forEach(k=>$("m-"+k).value=base[k]??"");syncMicStorage();
   micRepairs=JSON.parse(JSON.stringify(base.repairs||[])).map(r=>Object.assign({id:r.id||Math.random().toString(36).slice(2,9)},r));repairsUI($("mRepList"),micRepairs,canWrite);
   $("m-err").hidden=true;$("micConfirm").hidden=true;$("micDel").hidden=!m||!canWrite;$("micSave").hidden=!canWrite;
   [...$("micForm").elements].forEach(e=>{if(e.id&&e.id.startsWith("m-"))e.disabled=!canWrite});$("mRepAdd").hidden=!canWrite;
