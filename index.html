@@ -2172,7 +2172,7 @@ async function exportXlsx(dl){
     // 3. 핀마이크
     table("핀마이크","핀마이크 관리 대장",ds+" 기준 · 마이크 "+mics.length+"개",
       ["사용처","종류","번호","모델","구매","주 사용자","분류","보관 위치","상태 메모","수리 내역","메모"],
-      mics.slice().sort((a,b)=>(a.seq??1e9)-(b.seq??1e9)).map(m=>[m.venue||"",m.kind||"",m.code||"",m.model||"",m.bought||"",m.lastUser||"",m.status||"미지정",m.storage||"",m.place||"",repSummary(m.repairs),m.memo||""]),
+      mics.slice().sort(micOrder).map(m=>[m.venue||"",m.kind||"",m.code||"",m.model||"",m.bought||"",m.lastUser||"",m.status||"미지정",m.storage||"",m.place||"",repSummary(m.repairs),m.memo||""]),
       [12,8,10,16,12,22,9,12,30,40,24],7);
     // 4. 주파수
     const fl=freqs.slice().sort((a,b)=>(a.seq??1e9)-(b.seq??1e9));
@@ -2235,11 +2235,15 @@ $("subMic").onclick=()=>{location.hash="mics"};
 $("subFreq").onclick=()=>{location.hash="freqs"};
 
 /* ---------- 마이크 목록 ---------- */
+/* 사용처 순서: 공연장 → 이벤트 → 조살수 → 속촌괴담 → 그 밖 */
+const VENUE_ORDER=["공연장","이벤트","조살수","속촌괴담"];
+const venueRank=v=>{const s=String(v||"");const i=VENUE_ORDER.findIndex(n=>s.startsWith(n));return i<0?VENUE_ORDER.length:i};
+const micOrder=(a,b)=>venueRank(a.venue)-venueRank(b.venue)||String(a.venue||"").localeCompare(String(b.venue||""),"ko")||(a.seq??1e9)-(b.seq??1e9);
 function micVisible(){
   const q=MF.q.trim().toLowerCase();
   return mics.filter(m=>(!MF.venue||m.venue===MF.venue)&&(!MF.kind||m.kind===MF.kind)&&(MF.status==="*"||(m.status||"")===MF.status)&&
     (!q||searchHit([m.code,m.model,m.lastUser,m.storage,m.place,m.memo,m.venue,m.kind,checksSummary(m.checks),repSummary(m.repairs)],q)))
-   .sort((a,b)=>(a.seq??1e9)-(b.seq??1e9));
+   .sort(micOrder);
 }
 function renderMics(){
   if($("micView").hidden)return;
@@ -2249,7 +2253,7 @@ function renderMics(){
   box("전체 마이크",mics.length,"","*");
   [["정상","green"],["보관","yellow"],["스페어","blue"],["수리","orange"],["고장","red"],["폐기",""]].forEach(([s,c])=>box(s,mics.filter(m=>m.status===s).length,c,s));
   // 필터
-  fillSelect($("mfVenue"),["","전체 사용처"],uniq(mics.map(m=>m.venue)),MF.venue);
+  fillSelect($("mfVenue"),["","전체 사용처"],uniq(mics.map(m=>m.venue)).sort((a,b)=>venueRank(a)-venueRank(b)||String(a).localeCompare(String(b),"ko")),MF.venue);
   fillSelect($("mfKind"),["","전체 종류"],uniq(mics.map(m=>m.kind)),MF.kind);
   fillSelect($("mfStat"),["*","전체 분류"],MSTAT.map(s=>({id:s.id,label:s.label||s.id})),MF.status);
   MF.venue=$("mfVenue").value;MF.kind=$("mfKind").value;MF.status=$("mfStat").value;
@@ -2326,7 +2330,7 @@ $("mq").oninput=e=>{MF.q=e.target.value;renderMics()};
 let editMic=null,micRepairs=[],micSnap="";
 const MFIELDS=["venue","kind","code","model","bought","lastUser","status","storage","place","memo"];
 /* 보관 위치: 기본 목록 + 이미 쓴 이름 + 새로 입력 */
-const MSTORE=["방송실","조정실","관아","공터","속촌괴담"];
+const MSTORE=["방송실","조정실","관아","공터","속촌괴담","놀이마을"];
 const micStoreOpts=()=>uniq(MSTORE.concat(mics.map(x=>x.storage).filter(Boolean).sort(byKo)));
 function syncMicStorage(){const sel=$("m-storage-sel"),inp=$("m-storage"),v=inp.value.trim();
   const opts=micStoreOpts();if(v&&!opts.includes(v))opts.push(v);
