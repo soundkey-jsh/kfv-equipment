@@ -748,13 +748,13 @@ html{-webkit-text-size-adjust:100%}
     </div>
     <div class="two">
       <div class="field"><label for="m-bought">구매일자</label><input id="m-bought" placeholder="예: 2026년 4월"></div>
-      <div class="field"><label for="m-lastUser">주 사용자</label><input id="m-lastUser" placeholder="예: 조살수 김씨"></div>
+      <div class="field"><label for="m-lastUser">주 사용자</label><input id="m-lastUser" data-ph="예: 조살수 김씨"></div>
     </div>
     <div class="field"><label for="m-status">분류</label><select id="m-status"></select></div>
     <div class="field"><label for="m-storage-sel">보관 위치</label><div class="pick"><select id="m-storage-sel" aria-label="보관 위치 선택"></select><input id="m-storage" placeholder="새 보관 위치 이름" aria-label="새 보관 위치 이름" hidden></div></div>
     <div class="sect sect-row"><span>수리 내역</span><button type="button" class="btn" id="mRepAdd">+ 수리 기록 추가</button></div>
     <div class="reps" id="mRepList"></div>
-    <div class="field"><label for="m-place">상태 메모</label><textarea id="m-place" rows="2" placeholder="예: 실리콘튜브 교체 필요"></textarea></div>
+    <div class="field"><label for="m-place">상태 메모</label><textarea id="m-place" rows="2" data-ph="예: 실리콘튜브 교체 필요"></textarea></div>
     <div class="field"><label for="m-memo">메모</label><textarea id="m-memo" rows="2"></textarea></div>
     <p class="meta" id="m-meta" hidden></p>
     <div id="micConfirm" class="confirm" hidden><span>이 마이크를 삭제할까요? 되돌릴 수 없습니다.</span><button type="button" class="btn danger" id="micConfirmDel">삭제</button><button type="button" class="btn" id="micCancelDel">취소</button></div>
@@ -2347,7 +2347,8 @@ function syncMicStorage(){const sel=$("m-storage-sel"),inp=$("m-storage"),v=inp.
 $("m-storage-sel").addEventListener("change",e=>{const inp=$("m-storage");if(e.target.value===NEW){inp.value="";inp.hidden=false;inp.focus()}else{inp.value=e.target.value;inp.hidden=true}});
 function micFormSnap(){return JSON.stringify([MFIELDS.map(k=>$("m-"+k).value),cleanRepairs(micRepairs)])}
 function openMic(m){
-  editMic=m||null;$("micFormTitle").textContent=m?micTitle(m):"마이크 추가";
+  editMic=m||null;
+  document.querySelectorAll("#micForm [data-ph]").forEach(e=>e.placeholder=m?"":e.dataset.ph); // 기존 마이크는 빈 칸 그대로$("micFormTitle").textContent=m?micTitle(m):"마이크 추가";
   const base=m||{venue:MF.venue,kind:MF.kind||"PIN",status:"정상"};
   const dl=(id,vals)=>$(id).replaceChildren(...vals.map(v=>{const o=document.createElement("option");o.value=v;return o}));
   dl("dl-mvenue",uniq(mics.map(x=>x.venue)));dl("dl-mkind",uniq(["PACK","PIN","HAND"].concat(mics.map(x=>x.kind))));dl("dl-mmodel",uniq(mics.map(x=>x.model)));
