@@ -2339,7 +2339,7 @@ $("mq").oninput=e=>{MF.q=e.target.value;renderMics()};
 let editMic=null,micRepairs=[],micSnap="";
 const MFIELDS=["venue","kind","code","model","bought","lastUser","status","storage","place","memo"];
 /* 보관 위치: 기본 목록 + 이미 쓴 이름 + 새로 입력 */
-const MSTORE=["방송실","조정실","관아","공터","속촌괴담","놀이마을"];
+const MSTORE=["방송실","조정실","관아","공터","속촌괴담","놀이마을","공연장"];
 const micStoreOpts=()=>uniq(MSTORE.concat(mics.map(x=>x.storage).filter(Boolean).sort(byKo)));
 function syncMicStorage(){const sel=$("m-storage-sel"),inp=$("m-storage"),v=inp.value.trim();
   const opts=micStoreOpts();if(v&&!opts.includes(v))opts.push(v);
