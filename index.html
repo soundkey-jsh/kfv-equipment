@@ -178,6 +178,8 @@ input[readonly]{background:var(--bg)}
 .mmdlg{width:min(720px,100%);max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow:hidden}
 .mmlist{flex:1 1 auto;min-height:120px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 html.noscroll,html.noscroll body{overflow:hidden}
+#modelModal{z-index:19} /* 장비 정보(20) 뒤에 남아 있도록 */
+.overlay,.panel,#form{overscroll-behavior:contain}
 #modelModal{overscroll-behavior:contain}
 .mmhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .mmbody{flex:none;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
@@ -1405,7 +1407,7 @@ function openPanel(item,over,focusId){
   $("repAdd").hidden=!canWrite;renderRepairs();
   refreshPreview();loadItemHist(item);renderCover();
   panelSnap=formSnap();panelForceDirty=!!over;
-  $("overlay").hidden=false;$("form").scrollTop=0;
+  $("overlay").hidden=false;document.documentElement.classList.add("noscroll");$("form").scrollTop=0;
   setTimeout(()=>{const f=$(focusId||(item?"f-usage":"f-field-sel"));if(f)f.focus(focusId?undefined:{preventScroll:true});if(!focusId)$("form").scrollTop=0},0);
 }
 let panelSnap="",panelForceDirty=false,closing=false;
@@ -1415,8 +1417,7 @@ function formSnap(){
 }
 function isDirty(){return canWrite&&(panelForceDirty||formSnap()!==panelSnap)}
 function closePanel(){$("overlay").hidden=true;editing=null;panelForceDirty=false;
-  if(mmReturn){const r=mmReturn;mmReturn=null;setTimeout(()=>{if(!$("overlay").hidden)return;const fresh=r.m.items.map(x=>items.find(i=>i.id===x.id)).filter(Boolean);
-    if(fresh.length){openModelModal(Object.assign({},r.m,{items:fresh}));mmLast=r.last;$("mmList").scrollTop=r.top}},80)}}
+  if($("modelModal").hidden)document.documentElement.classList.remove("noscroll");else refreshModelModal()}
 async function requestClose(){
   if($("overlay").hidden||closing)return;
   if(!isDirty()){closePanel();return}
@@ -2035,8 +2036,9 @@ function renderGallery(list){
   box.append(frag);
 }
 let mmLast=null;
+let mmCur=null;
 function openModelModal(m){
-  mmLast=document.activeElement;
+  mmCur=m;mmLast=document.activeElement;
   $("mmTitle").textContent=m.model;$("mmSub").textContent=[m.mf,m.type].filter(Boolean).join(" · ");
   const ph=$("mmPhoto");ph.replaceChildren();const im=m.key?imagesFor(m.key):[];if(im.length)ph.append(imgEl(im[0],m.model));else ph.textContent="사진 없음";
   const st=$("mmStats");st.replaceChildren();
@@ -2048,11 +2050,15 @@ function openModelModal(m){
   m.items.forEach(i=>{const r=el("button","mmrow");r.type="button";
     const u=usageOf(i.usage);
     r.append(el("span","aid",i.assetId||"—"),el("span","muted hide-s",i.location||"—"),el("span","muted hide-s",i.assign||""),el("span","chip "+u.cls,u.label||u.id),el("span","lbl "+(i.label||"")));
-    r.onclick=()=>{mmReturn={m,top:L.scrollTop,last:mmLast};closeModelModal(false);openPanel(i)};L.append(r)});
+    r.onclick=()=>openPanel(i);L.append(r)});
   $("modelModal").hidden=false;document.documentElement.classList.add("noscroll");L.scrollTop=0;setTimeout(()=>$("mmClose").focus(),0);
 }
-let mmReturn=null; // 사진으로 보기 → 장비 정보 → 닫으면 모델 창으로 돌아오기
-function closeModelModal(restore=true){$("modelModal").hidden=true;document.documentElement.classList.remove("noscroll");if(restore&&mmLast&&mmLast.focus)mmLast.focus()}
+/* 모델 창은 장비 정보를 여는 동안에도 뒤에 그대로 두고, 닫으면 바뀐 내용으로 다시 그림 */
+function refreshModelModal(){if(!mmCur)return;const top=$("mmList").scrollTop,last=mmLast;
+  const fresh=mmCur.items.map(x=>items.find(i=>i.id===x.id)).filter(Boolean);
+  if(!fresh.length){closeModelModal();return}
+  setTimeout(()=>{if($("modelModal").hidden)return;openModelModal(Object.assign({},mmCur,{items:fresh.map(x=>items.find(i=>i.id===x.id)||x)}));mmLast=last;$("mmList").scrollTop=top},80)}
+function closeModelModal(restore=true){mmCur=null;$("modelModal").hidden=true;document.documentElement.classList.remove("noscroll");if(restore&&mmLast&&mmLast.focus)mmLast.focus()}
 $("mmClose").onclick=()=>closeModelModal();
 $("modelModal").addEventListener("click",e=>{if(e.target===$("modelModal"))closeModelModal()});
 $("modelModal").addEventListener("keydown",e=>{if(e.key==="Escape"){e.stopPropagation();closeModelModal()}});
