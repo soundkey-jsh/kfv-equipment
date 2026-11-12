@@ -279,7 +279,8 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .rep.open{border-color:var(--orange)}
 .rephead{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .repstate{font-size:12px;font-weight:700;padding:2px 8px;border-radius:4px}
-.repstate.open{color:var(--orange);background:var(--orange-bg)} .repstate.done{color:var(--green);background:var(--green-bg)}
+.repstate.open{color:var(--orange);background:var(--orange-bg)} .repstate.done{color:var(--green);background:var(--green-bg)} .repstate.fail{color:var(--red);background:var(--red-bg)}
+.rep.fail{border-color:var(--red)}.repmini.fail{border-left-color:var(--red)}.repstsel{width:auto;font-size:13px;font-weight:600;padding:4px 8px}.mcheck b.rs-fail{color:var(--red)}
 .rep .btn.ghost{color:var(--red);font-size:12px;padding:3px 6px}
 .rep input,.rep textarea{background:var(--surface)}
 .reps{gap:6px}
@@ -1489,9 +1490,12 @@ async function getProfiles(ids){
 let repairs=[];
 const REP_F=[["failedAt","고장일"],["symptom","증상"],["work","수리내용"],["doneAt","수리완료일"],["vendor","수리업체"]];
 function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
-function repLine(r){return [r.failedAt?"고장 "+r.failedAt:"",r.symptom,r.work,r.doneAt?"완료 "+r.doneAt:"수리 진행중",r.vendor].filter(Boolean).join(" / ")}
+/* 수리 결과: 진행중 / 완료 / 불가 (예전 기록은 완료일이 있으면 완료) */
+const REP_ST={open:"수리 진행중",done:"수리 완료",fail:"수리 불가"};
+const repState=r=>r.status==="fail"?"fail":(r.status==="done"||(!r.status&&r.doneAt))?"done":"open";
+function repLine(r){const s=repState(r);return [r.failedAt?"고장 "+r.failedAt:"",r.symptom,r.work,s==="open"?"수리 진행중":(s==="fail"?"수리 불가":"완료")+(r.doneAt?" "+r.doneAt:""),r.vendor].filter(Boolean).join(" / ")}
 function repSummary(a){return (Array.isArray(a)?a:[]).map(repLine).join("\n")}
-function cleanRepairs(a){return a.map(r=>{const o={id:r.id};REP_F.forEach(([k])=>o[k]=String(r[k]||"").trim());return o}).filter(r=>REP_F.some(([k])=>r[k]))
+function cleanRepairs(a){return a.map(r=>{const o={id:r.id};REP_F.forEach(([k])=>o[k]=String(r[k]||"").trim());const s=repState(r);if(r.status||s==="fail")o.status=s;return o}).filter(r=>REP_F.some(([k])=>r[k]))
   .sort((x,y)=>String(y.failedAt||"").localeCompare(String(x.failedAt||"")))}
 function repairsUI(box,list,canEd){
   const rr=()=>repairsUI(box,list,canEd);
@@ -1502,31 +1506,36 @@ function repairsUI(box,list,canEd){
   list.forEach((r,idx)=>{
     if(!r._open){
       // 간단히 보기
-      const c=el("button","repmini"+(r.doneAt?"":" open"));c.type="button";c.title=canEd?"눌러서 수정":"";
+      const rs=repState(r);const c=el("button","repmini"+(rs==="done"?"":" "+rs));c.type="button";c.title=canEd?"눌러서 수정":"";
       const top=el("div","rmtop");
       top.append(el("span","rmdate",r.failedAt||"날짜 없음"),el("span","rmsym",r.symptom||"(증상 없음)"),
-        el("span","repstate "+(r.doneAt?"done":"open"),r.doneAt?"완료 "+r.doneAt.slice(5).replace("-","/"):"진행중"));
+        el("span","repstate "+rs,rs==="open"?"진행중":(rs==="fail"?"불가":"완료")+(r.doneAt?" "+r.doneAt.slice(5).replace("-","/"):"")));
       c.append(top);
       const sub=[r.work,r.vendor].filter(Boolean).join(" · ");if(sub)c.append(el("div","rmsub",sub));
       c.onclick=()=>{if(!canEd)return;r._open=true;rr()};
       if(!canEd)c.style.cursor="default";
       box.append(c);return;
     }
-    const c=el("div","rep"+(r.doneAt?"":" open"));
-    const h=el("div","rephead");const st=el("span","repstate "+(r.doneAt?"done":"open"),r.doneAt?"수리 완료":"수리 진행중");
-    h.append(st);
+    const c=el("div","rep");
+    const h=el("div","rephead");const st=el("span","repstate");
+    const paint=()=>{const s=repState(r);c.className="rep"+(s==="done"?"":" "+s);st.className="repstate "+s;st.textContent=REP_ST[s];if(stSel)stSel.value=s};
+    let stSel=null;
+    if(canEd){stSel=el("select","repstsel");stSel.setAttribute("aria-label","수리 결과");Object.entries(REP_ST).forEach(([k,t])=>stSel.append(new Option(t,k)));
+      stSel.onchange=()=>{r.status=stSel.value;const d=document.getElementById("rep-"+r.id+"-doneAt");
+        if(r.status==="open"){r.doneAt="";if(d)d.value=""}else if(!r.doneAt){r.doneAt=todayStr();if(d)d.value=r.doneAt}paint()};
+      h.append(stSel)}else h.append(st);
     const hb=el("span","rephb");
     const fold=el("button","btn ghost fold","접기");fold.type="button";fold.onclick=()=>{r._open=false;rr()};hb.append(fold);
     if(canEd){const x=el("button","btn ghost","기록 삭제");x.type="button";x.onclick=()=>{list.splice(idx,1);rr()};hb.append(x)}
     h.append(hb);c.append(h);
     const mk=(k,lab,tag,attrs)=>{const f=el("div","field");const id="rep-"+r.id+"-"+k;const l=el("label",null,lab);l.htmlFor=id;
       const inp=document.createElement(tag);inp.id=id;Object.assign(inp,attrs||{});inp.value=r[k]||"";inp.disabled=!canEd;
-      inp.addEventListener("input",()=>{r[k]=inp.value;if(k==="doneAt"){c.classList.toggle("open",!inp.value);st.className="repstate "+(inp.value?"done":"open");st.textContent=inp.value?"수리 완료":"수리 진행중"}});
+      inp.addEventListener("input",()=>{r[k]=inp.value;if(k==="doneAt"){if(inp.value&&repState(r)==="open")r.status="done";else if(!inp.value&&r.status==="done")r.status="open";paint()}});
       f.append(l,inp);return f};
-    const two1=el("div","two");two1.append(mk("failedAt","고장일","input",{type:"date"}),mk("doneAt","수리완료일","input",{type:"date"}));
+    const two1=el("div","two");two1.append(mk("failedAt","고장일","input",{type:"date"}),mk("doneAt","완료·불가 판정일","input",{type:"date"}));
     c.append(two1,mk("symptom","증상","input",{placeholder:"예: 트위터 소리 안남"}),mk("work","수리내용","textarea",{rows:2,placeholder:"예: 트위터 드라이버 교체"}));
     const v=mk("vendor","수리업체","input",{placeholder:"예: 메이사운드"});v.querySelector("input").setAttribute("list","dl-vendor");c.append(v);
-    box.append(c);
+    paint();box.append(c);
   });
 }
 function renderRepairs(){repairsUI($("repList"),repairs,canWrite)}
@@ -2268,7 +2277,7 @@ function renderMics(){
     const row=el("div","mgrid row");row.tabIndex=0;row.setAttribute("role","button");
     row.append(el("span","mkind k-"+String(m.kind||"").toLowerCase(),m.kind||"—"),el("span","mcode",m.code||"—"),el("span","mmodel",m.model||"—"),el("span","mbought",m.bought||""),el("span","muser",m.lastUser||""));
     const lr=(m.repairs||[]).slice().sort((x,y)=>String(y.doneAt||y.failedAt||"").localeCompare(String(x.doneAt||x.failedAt||"")))[0];
-    const ck=el("span","mcheck");if(lr){ck.append(el("b",null,lr.doneAt?"완료 "+lr.doneAt.slice(2).replace(/-/g,"."):"진행중"),document.createTextNode(" "+[lr.symptom,lr.work,lr.vendor].filter(Boolean).join(" · ")))}row.append(ck);
+    const ck=el("span","mcheck");if(lr){const ls=repState(lr);ck.append(el("b","rs-"+ls,ls==="open"?"진행중":(ls==="fail"?"불가":"완료")+(lr.doneAt?" "+lr.doneAt.slice(2).replace(/-/g,"."):"")),document.createTextNode(" "+[lr.symptom,lr.work,lr.vendor].filter(Boolean).join(" · ")))}row.append(ck);
     row.append(micStatCell(m));
     row.append(micStoreCell(m));
     const pl=el("span","mplace",m.place||"");row.append(pl);
