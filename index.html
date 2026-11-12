@@ -553,18 +553,18 @@ html{-webkit-text-size-adjust:100%}
     </div>
     <div class="two">
       <div class="field"><label for="f-location-sel">Location</label><div class="pick"><select id="f-location-sel" aria-label="위치 선택"></select><input id="f-location" placeholder="새 위치 이름" hidden></div></div>
-      <div class="field"><label for="f-assign">Assign (용도)</label><input id="f-assign" placeholder="예: CH 1, BGM"></div>
+      <div class="field"><label for="f-assign">Assign (용도)</label><input id="f-assign" data-ph="예: CH 1, BGM"></div>
     </div>
     <div class="field"><label for="f-sn">S/N</label><input id="f-sn"></div>
 
     <div class="sect sect-row"><span>정비 이력 (Maintenance History)</span><button type="button" class="btn" id="repAdd">+ 정비 기록 추가</button></div>
     <div class="reps" id="repList"></div>
-    <div class="field"><label for="f-maintenance">정비 메모 (이전 기록)</label><textarea id="f-maintenance" rows="2" placeholder="예: [2026년 3월] 기판 교체 (업체명)"></textarea></div>
+    <div class="field"><label for="f-maintenance">정비 메모 (이전 기록)</label><textarea id="f-maintenance" rows="2" data-ph="예: [2026년 3월] 기판 교체 (업체명)"></textarea></div>
     <datalist id="dl-vendor"></datalist>
     <div class="sect">상태 기록</div>
-    <div class="field"><label for="f-issues">Issues</label><input id="f-issues" placeholder="예: SD 인식 안됨"></div>
+    <div class="field"><label for="f-issues">Issues</label><input id="f-issues" data-ph="예: SD 인식 안됨"></div>
 
-    <div class="field"><label for="f-notes">Notes</label><textarea id="f-notes" rows="2" placeholder="예: Range: B (626~668MHz)"></textarea></div>
+    <div class="field"><label for="f-notes">Notes</label><textarea id="f-notes" rows="2" data-ph="예: Range: B (626~668MHz)"></textarea></div>
 
     <p class="meta" id="f-meta" hidden></p>
     <div id="itemHist" hidden><div class="sect sect-row"><span>변경 기록</span><button type="button" class="btn danger" id="itemHistDel" hidden>이 장비 기록 모두 삭제</button></div><div class="hlist" id="itemHistList"></div></div>
@@ -1387,6 +1387,8 @@ function labelCell(i){
 const TEXT_KEYS=["category","field","type","manufacturer","model","location","assign","sn","issues","maintenance","notes"];
 function openPanel(item,over,focusId){
   editing=item||null;
+  // 예시 문구는 새 장비를 추가할 때만 보이고, 기존 장비에서는 빈 칸은 빈 칸으로 둠
+  document.querySelectorAll("#form [data-ph]").forEach(e=>e.placeholder=item?"":e.dataset.ph);
   $("formTitle").textContent=item?"장비 정보":"장비 추가";
   const base=item||(()=>{ // 새 장비: 현재 필터를 기본값으로
     return {category:F.cat,field:F.field,location:F.loc,year:new Date().getFullYear(),usage:"사용 대기",label:""}})();
