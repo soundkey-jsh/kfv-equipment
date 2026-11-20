@@ -284,6 +284,37 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .lbimg img{max-width:100%;max-height:100%;object-fit:contain;border-radius:4px}
 .lbnav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.14);color:#fff;border:0;border-radius:50%;width:40px;height:40px;font-size:20px}
 .lbnav.prev{left:4px}.lbnav.next{right:4px}
+/* 사진 편집 */
+.pe{position:fixed;inset:0;z-index:38;background:#0d1016;color:#e8ebf1;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));gap:10px}
+.pe .pehead{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.pe .pehead h2{font-size:16px;margin:0}
+.pe .btn{background:#1d222c;color:#e8ebf1;border-color:#3a4252}
+.pe .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.pestage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;position:relative}
+.pebox{position:relative;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+.pebox canvas{position:absolute;inset:0;width:100%;height:100%}
+.pecrop{position:absolute;box-shadow:0 0 0 9999px rgba(0,0,0,.58);outline:1.5px solid #fff;cursor:move;touch-action:none;
+  background-image:linear-gradient(rgba(255,255,255,.45),rgba(255,255,255,.45)),linear-gradient(rgba(255,255,255,.45),rgba(255,255,255,.45)),linear-gradient(90deg,rgba(255,255,255,.45),rgba(255,255,255,.45)),linear-gradient(90deg,rgba(255,255,255,.45),rgba(255,255,255,.45));
+  background-size:100% 1px,100% 1px,1px 100%,1px 100%;background-position:0 33.33%,0 66.67%,33.33% 0,66.67% 0;background-repeat:no-repeat}
+.pecrop.fine{background-image:repeating-linear-gradient(rgba(255,255,255,.35) 0 1px,transparent 1px 100%),repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 1px,transparent 1px 100%);background-size:100% 8.33%,8.33% 100%;background-position:0 0;background-repeat:repeat}
+.pecrop i{position:absolute;width:22px;height:22px;border:3px solid #fff}
+.pecrop i[data-h=nw]{left:-3px;top:-3px;border-right:0;border-bottom:0;cursor:nwse-resize}
+.pecrop i[data-h=ne]{right:-3px;top:-3px;border-left:0;border-bottom:0;cursor:nesw-resize}
+.pecrop i[data-h=sw]{left:-3px;bottom:-3px;border-right:0;border-top:0;cursor:nesw-resize}
+.pecrop i[data-h=se]{right:-3px;bottom:-3px;border-left:0;border-top:0;cursor:nwse-resize}
+.pecrop b{position:absolute}
+.pecrop b[data-h=n],.pecrop b[data-h=s]{left:22px;right:22px;height:16px;cursor:ns-resize}
+.pecrop b[data-h=n]{top:-8px}.pecrop b[data-h=s]{bottom:-8px}
+.pecrop b[data-h=e],.pecrop b[data-h=w]{top:22px;bottom:22px;width:16px;cursor:ew-resize}
+.pecrop b[data-h=e]{right:-8px}.pecrop b[data-h=w]{left:-8px}
+.pemsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:#aab3c2}
+.petools{display:flex;flex-direction:column;gap:10px;max-width:760px;width:100%;margin:0 auto}
+.petools .row1{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center}
+.petools select{background:#1d222c;color:#e8ebf1;border:1px solid #3a4252;border-radius:6px;padding:7px 8px}
+.pesl{display:grid;grid-template-columns:86px 1fr 56px 34px;align-items:center;gap:8px;font-size:13px}
+.pesl input[type=range]{width:100%;accent-color:var(--accent)}
+.pesl output{font-variant-numeric:tabular-nums;text-align:right;color:#cfd6e2}
+.pesl .btn{padding:4px 0;font-size:12px}
 .sect-row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .sect-row .btn{text-transform:none;letter-spacing:0;font-size:12.5px;padding:5px 10px;font-weight:600}
 .reps{display:flex;flex-direction:column;gap:10px}
@@ -753,6 +784,17 @@ html{-webkit-text-size-adjust:100%}
 <div class="lightbox" id="lb" hidden role="dialog" aria-label="사진 보기">
   <div class="lbtop"><span class="nm" id="lbName"></span><span class="acts" id="lbActs"></span></div>
   <div class="lbimg"><button type="button" class="lbnav prev" id="lbPrev" aria-label="이전 사진">‹</button><img id="lbImg" alt=""><button type="button" class="lbnav next" id="lbNext" aria-label="다음 사진">›</button></div>
+</div>
+<div class="pe" id="pe" hidden role="dialog" aria-label="사진 편집">
+  <div class="pehead"><h2>사진 편집</h2><span style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn" id="peOrig" hidden>원본으로 되돌리기</button><button type="button" class="btn" id="peReset">초기화</button><button type="button" class="btn" id="peCancel">취소</button><button type="button" class="btn primary" id="peSave">저장</button></span></div>
+  <div class="pestage" id="peStage"><div class="pebox" id="peBox"><canvas id="peCv"></canvas><div class="pecrop" id="peCrop"><i data-h="nw"></i><i data-h="ne"></i><i data-h="sw"></i><i data-h="se"></i><b data-h="n"></b><b data-h="s"></b><b data-h="e"></b><b data-h="w"></b></div></div><div class="pemsg" id="peMsg" hidden></div></div>
+  <div class="petools">
+    <div class="row1"><button type="button" class="btn" id="peL" title="왼쪽으로 90° 회전">⟲ 90°</button><button type="button" class="btn" id="peR" title="오른쪽으로 90° 회전">⟳ 90°</button><button type="button" class="btn" id="peF" title="좌우 반전">⇋ 반전</button>
+      <label style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">자르기 비율 <select id="peRatio"><option value="0">자유</option><option value="o">원본 비율</option><option value="1">1:1</option><option value="1.3333">4:3</option><option value="0.75">3:4</option><option value="1.7778">16:9</option></select></label></div>
+    <div class="pesl"><label for="peAng">수평 맞추기</label><input type="range" id="peAng" min="-45" max="45" step="0.1" value="0"><output id="peAngV">0°</output><button type="button" class="btn" data-z="peAng" title="0으로">0</button></div>
+    <div class="pesl"><label for="peKv">세로 기울기</label><input type="range" id="peKv" min="-30" max="30" step="0.5" value="0"><output id="peKvV">0</output><button type="button" class="btn" data-z="peKv" title="0으로">0</button></div>
+    <div class="pesl"><label for="peKh">가로 기울기</label><input type="range" id="peKh" min="-30" max="30" step="0.5" value="0"><output id="peKhV">0</output><button type="button" class="btn" data-z="peKh" title="0으로">0</button></div>
+  </div>
 </div>
 <div class="overlay" id="micOverlay" hidden>
   <form class="panel" id="micForm" novalidate>
@@ -1949,6 +1991,7 @@ function showLb(){
   if(canWrite&&db&&!m.itemId&&!m.repId&&!m.cover&&lbIdx!==0){const c=el("button","btn","대표 사진으로");c.type="button";c.onclick=()=>setCover(m);a.append(c)}
   if(canWrite&&db&&m.itemId&&!m.repId){const c=el("button","btn","모델 공통으로 옮기기");c.type="button";c.title="같은 모델 장비 모두에 보이게 합니다";c.onclick=()=>moveMat(m,null);a.append(c)}
   else if(canWrite&&db&&!m.itemId&&!m.repId&&editing&&editing.id&&!$("overlay").hidden&&keyOf(editing.manufacturer,editing.model)===m.key){const c=el("button","btn","이 장비 사진으로 옮기기");c.type="button";c.title=(editing.assetId||"이 장비")+"에만 보이게 합니다";c.onclick=()=>moveMat(m,editing);a.append(c)}
+  if(canWrite&&db&&assetsNs&&m.kind==="image"&&(m.ext||"")!=="gif"){const c=el("button","btn","편집");c.type="button";c.title="자르기 · 회전 · 수평 맞추기 · 기울기";c.onclick=()=>openPE(m);a.append(c)}
   if(dlNs){const s=el("button","btn","다운로드");s.type="button";s.onclick=()=>saveMat(m,s);a.append(s)}
   if(canDelMat(m)){const x=el("button","btn danger","삭제");x.type="button";x.onclick=()=>delMat(m);a.append(x)}
   const cl=el("button","btn","닫기");cl.type="button";cl.onclick=closeLb;a.append(cl);
@@ -1958,9 +2001,152 @@ $("lbNext").onclick=()=>{lbIdx=(lbIdx+1)%lbList.length;showLb()};
 $("lb").addEventListener("click",e=>{if(e.target===$("lb")||e.target.classList.contains("lbimg"))closeLb()});
 document.addEventListener("keydown",e=>{
   if(!$("askModal").hidden)return;
+  if(!$("pe").hidden){if(e.key==="Escape"){e.stopImmediatePropagation();closePE()}return}
   if(!$("lb").hidden){if(e.key==="Escape"){e.stopImmediatePropagation();closeLb()}else if(e.key==="ArrowLeft")$("lbPrev").click();else if(e.key==="ArrowRight")$("lbNext").click();return}
   if(!$("matOverlay").hidden&&e.key==="Escape"){e.stopImmediatePropagation();closeMats()}
 },true);
+/* ---------- 사진 편집: 자르기 · 90° 회전 · 반전 · 수평 맞추기 · 세로/가로 기울기 ----------
+   원본은 지우지 않고 origAssetId로 남겨 두고, 편집값(edit)도 저장해서 다시 열면 원본에서 이어서 고칠 수 있음 */
+const PE={m:null,bmp:null,pdata:null,k:0,flip:false,ang:0,kv:0,kh:0,crop:[0,0,1,1],ratio:"0",busy:false,raf:0,dirty:false};
+function peOrient(bmp,k,flip,max){
+  const sc=Math.min(1,max/Math.max(bmp.width,bmp.height)),w=Math.max(1,Math.round(bmp.width*sc)),h=Math.max(1,Math.round(bmp.height*sc));
+  const sw=k%2?h:w,sh=k%2?w:h,c=document.createElement("canvas");c.width=sw;c.height=sh;const g=c.getContext("2d");
+  g.fillStyle="#fff";g.fillRect(0,0,sw,sh);g.translate(sw/2,sh/2);if(flip)g.scale(-1,1);g.rotate(k*Math.PI/2);
+  g.imageSmoothingQuality="high";g.drawImage(bmp,-w/2,-h/2,w,h);
+  return g.getImageData(0,0,sw,sh);
+}
+function peQuad(W,H,p){ // 출력 화면의 네 모서리가 원본의 어느 점에서 오는지
+  const tl=[0,0],tr=[W,0],br=[W,H],bl=[0,H],a=p.kv/100,b=p.kh/100;
+  if(a>0){tl[0]+=a*W/2;tr[0]-=a*W/2}else if(a<0){bl[0]-=a*W/2;br[0]+=a*W/2}
+  if(b>0){tr[1]+=b*H/2;br[1]-=b*H/2}else if(b<0){tl[1]-=b*H/2;bl[1]+=b*H/2}
+  const th=-p.ang*Math.PI/180,c=Math.cos(th),s=Math.sin(th),cx=W/2,cy=H/2;
+  const q=[tl,tr,br,bl].map(([x,y])=>{x-=cx;y-=cy;return [x*c-y*s,x*s+y*c]});
+  let f=1;q.forEach(([x,y])=>{if(Math.abs(x)>1e-9)f=Math.min(f,cx/Math.abs(x));if(Math.abs(y)>1e-9)f=Math.min(f,cy/Math.abs(y))}); // 빈 모서리가 안 생기게 확대
+  return q.map(([x,y])=>[cx+x*f,cy+y*f]);
+}
+function peHomo(W,H,q){
+  const P=[[0,0],[W,0],[W,H],[0,H]],A=[],B=[];
+  for(let i=0;i<4;i++){const [x,y]=P[i],[X,Y]=q[i];A.push([x,y,1,0,0,0,-x*X,-y*X]);B.push(X);A.push([0,0,0,x,y,1,-x*Y,-y*Y]);B.push(Y)}
+  for(let c=0;c<8;c++){let p=c;for(let r=c+1;r<8;r++)if(Math.abs(A[r][c])>Math.abs(A[p][c]))p=r;
+    [A[c],A[p]]=[A[p],A[c]];[B[c],B[p]]=[B[p],B[c]];
+    for(let r=0;r<8;r++)if(r!==c){const f=A[r][c]/A[c][c];if(!f)continue;for(let k=c;k<8;k++)A[r][k]-=f*A[c][k];B[r]-=f*B[c]}}
+  return B.map((v,i)=>v/A[i][i]);
+}
+function peWarp(sd,p,crop,ow,oh){
+  const W=sd.width,H=sd.height,h=peHomo(W,H,peQuad(W,H,p)),out=new ImageData(ow,oh),o=out.data,s=sd.data;
+  const x0=crop[0]*W,y0=crop[1]*H,sx=crop[2]*W/ow,sy=crop[3]*H/oh;let di=0;
+  for(let j=0;j<oh;j++){const v=y0+(j+.5)*sy;
+    for(let i=0;i<ow;i++,di+=4){const u=x0+(i+.5)*sx,d=h[6]*u+h[7]*v+1,X=(h[0]*u+h[1]*v+h[2])/d-.5,Y=(h[3]*u+h[4]*v+h[5])/d-.5;
+      const xi=Math.floor(X),yi=Math.floor(Y);o[di+3]=255;
+      if(xi<-1||yi<-1||xi>=W||yi>=H){o[di]=o[di+1]=o[di+2]=255;continue}
+      const fx=X-xi,fy=Y-yi,xa=xi<0?0:xi,xb=xi+1>=W?W-1:xi+1,ya=yi<0?0:yi,yb=yi+1>=H?H-1:yi+1;
+      const a=(ya*W+xa)*4,b=(ya*W+xb)*4,c=(yb*W+xa)*4,e=(yb*W+xb)*4,w0=(1-fx)*(1-fy),w1=fx*(1-fy),w2=(1-fx)*fy,w3=fx*fy;
+      o[di]=s[a]*w0+s[b]*w1+s[c]*w2+s[e]*w3;o[di+1]=s[a+1]*w0+s[b+1]*w1+s[c+1]*w2+s[e+1]*w3;o[di+2]=s[a+2]*w0+s[b+2]*w1+s[c+2]*w2+s[e+2]*w3}}
+  return out;
+}
+function peRn(){const d=PE.pdata;if(!d||PE.ratio==="0")return 0;if(PE.ratio==="o")return 1;return Number(PE.ratio)*d.height/d.width}
+function peFitRatio(c){const rn=peRn();if(!rn)return c;let [x,y,w,h]=c;const cx=x+w/2,cy=y+h/2;
+  if(w/h>rn)w=h*rn;else h=w/rn;if(w>1){w=1;h=w/rn}if(h>1){h=1;w=h*rn}
+  x=Math.min(Math.max(0,cx-w/2),1-w);y=Math.min(Math.max(0,cy-h/2),1-h);return [x,y,w,h]}
+function peAdjust(c0,mode,dx,dy){
+  const MIN=.05;let [x,y,w,h]=c0,l=x,t=y,r=x+w,b=y+h;
+  if(mode==="move")return [Math.min(Math.max(0,x+dx),1-w),Math.min(Math.max(0,y+dy),1-h),w,h];
+  if(mode.includes("w"))l=Math.min(Math.max(0,l+dx),r-MIN);
+  if(mode.includes("e"))r=Math.max(Math.min(1,r+dx),l+MIN);
+  if(mode.includes("n"))t=Math.min(Math.max(0,t+dy),b-MIN);
+  if(mode.includes("s"))b=Math.max(Math.min(1,b+dy),t+MIN);
+  const rn=peRn();
+  if(rn){let nw=r-l,nh=b-t;
+    if(mode==="n"||mode==="s"){nw=nh*rn;const cx=(l+r)/2;l=cx-nw/2;r=cx+nw/2}
+    else if(mode==="e"||mode==="w"){nh=nw/rn;const cy=(t+b)/2;t=cy-nh/2;b=cy+nh/2}
+    else{nh=nw/rn;if(mode.includes("n"))t=b-nh;else b=t+nh}
+    let W2=r-l,H2=b-t;if(W2>1){W2=1;H2=W2/rn}if(H2>1){H2=1;W2=H2*rn}
+    // 반대쪽 모서리를 기준으로 넘치는 만큼 줄임
+    const ax=mode.includes("w")?r:mode.includes("e")?l:(l+r)/2,ay=mode.includes("n")?b:mode.includes("s")?t:(t+b)/2;
+    const fx=mode.includes("w")?ax/W2:mode.includes("e")?(1-ax)/W2:Math.min(ax,1-ax)*2/W2;
+    const fy=mode.includes("n")?ay/H2:mode.includes("s")?(1-ay)/H2:Math.min(ay,1-ay)*2/H2;
+    const f=Math.min(1,fx,fy);W2*=f;H2*=f;
+    l=mode.includes("w")?ax-W2:mode.includes("e")?ax:ax-W2/2;t=mode.includes("n")?ay-H2:mode.includes("s")?ay:ay-H2/2;
+    return [Math.max(0,l),Math.max(0,t),W2,H2]}
+  return [l,t,r-l,b-t];
+}
+function peCropUI(){const c=PE.crop,e=$("peCrop");e.style.left=c[0]*100+"%";e.style.top=c[1]*100+"%";e.style.width=c[2]*100+"%";e.style.height=c[3]*100+"%"}
+function peLayout(){const d=PE.pdata;if(!d||$("pe").hidden)return;const r=$("peStage").getBoundingClientRect();
+  const sc=Math.min((r.width-28)/d.width,(r.height-28)/d.height),b=$("peBox");b.style.width=Math.max(10,d.width*sc)+"px";b.style.height=Math.max(10,d.height*sc)+"px";peCropUI()}
+function peDraw(){cancelAnimationFrame(PE.raf);PE.raf=requestAnimationFrame(()=>{const d=PE.pdata;if(!d)return;const cv=$("peCv");
+  if(cv.width!==d.width||cv.height!==d.height){cv.width=d.width;cv.height=d.height}
+  cv.getContext("2d").putImageData(peWarp(d,PE,[0,0,1,1],d.width,d.height),0,0);peLayout()})}
+function peSource(){PE.pdata=peOrient(PE.bmp,PE.k,PE.flip,1000);PE.crop=peFitRatio(PE.crop);peDraw()}
+function peSync(){
+  $("peAng").value=PE.ang;$("peKv").value=PE.kv;$("peKh").value=PE.kh;$("peRatio").value=PE.ratio;
+  $("peAngV").textContent=(+PE.ang).toFixed(1).replace(/\.0$/,"")+"°";$("peKvV").textContent=PE.kv;$("peKhV").textContent=PE.kh;
+  $("peOrig").hidden=!(PE.m&&PE.m.origAssetId&&PE.m.origAssetId!==PE.m.assetId);
+}
+async function openPE(m){
+  const p=m.edit||{};Object.assign(PE,{m,bmp:null,pdata:null,k:p.k||0,flip:!!p.flip,ang:p.ang||0,kv:p.kv||0,kh:p.kh||0,crop:Array.isArray(p.crop)&&p.crop.length===4?p.crop.slice():[0,0,1,1],ratio:"0",dirty:false,busy:false});
+  $("pe").hidden=false;$("peBox").style.visibility="hidden";const msg=$("peMsg");msg.hidden=false;msg.textContent="사진을 불러오는 중…";
+  $("peSave").disabled=true;$("peSave").textContent="저장";peSync();
+  try{const res=await fetch(blobUrl(m.origAssetId||m.assetId));if(!res.ok)throw 0;const bmp=await createImageBitmap(await res.blob());if(PE.m!==m)return;PE.bmp=bmp}
+  catch(_){if(PE.m===m)msg.textContent="사진을 불러오지 못했습니다. 잠시 후 다시 시도하세요.";return}
+  msg.hidden=true;$("peBox").style.visibility="";$("peSave").disabled=false;peSource();
+}
+async function closePE(force){
+  if(!force&&PE.dirty&&!PE.busy){const ok=await askConfirm("편집한 내용을 버릴까요?","저장하지 않은 편집은 사라집니다.",null,null,"버리기");if(!ok)return}
+  $("pe").hidden=true;PE.m=null;PE.bmp=null;PE.pdata=null;
+}
+function peChanged(){PE.dirty=true}
+$("peL").onclick=()=>{if(!PE.bmp)return;PE.k=(PE.k+3)%4;const [x,y,w,h]=PE.crop;PE.crop=[y,1-x-w,h,w];peChanged();peSource()};
+$("peR").onclick=()=>{if(!PE.bmp)return;PE.k=(PE.k+1)%4;const [x,y,w,h]=PE.crop;PE.crop=[1-y-h,x,h,w];peChanged();peSource()};
+$("peF").onclick=()=>{if(!PE.bmp)return;PE.flip=!PE.flip;const [x,y,w,h]=PE.crop;PE.crop=[1-x-w,y,w,h];peChanged();peSource()};
+$("peRatio").onchange=e=>{PE.ratio=e.target.value;PE.crop=peFitRatio(PE.crop);peChanged();peCropUI()};
+[["peAng","ang"],["peKv","kv"],["peKh","kh"]].forEach(([id,k])=>{const inp=$(id);
+  inp.addEventListener("input",()=>{PE[k]=Number(inp.value);peChanged();peSync();if(k==="ang")$("peCrop").classList.add("fine");peDraw()});
+  inp.addEventListener("change",()=>$("peCrop").classList.remove("fine"));
+  inp.addEventListener("dblclick",()=>{PE[k]=0;peSync();peDraw()})});
+document.querySelectorAll("#pe [data-z]").forEach(b=>b.onclick=()=>{const k={peAng:"ang",peKv:"kv",peKh:"kh"}[b.dataset.z];if(PE[k]){PE[k]=0;peChanged();peSync();peDraw()}});
+$("peReset").onclick=()=>{if(!PE.bmp)return;Object.assign(PE,{k:0,flip:false,ang:0,kv:0,kh:0,crop:[0,0,1,1],ratio:"0"});peChanged();peSync();peSource()};
+$("peCancel").onclick=()=>closePE();
+$("peBox").addEventListener("pointerdown",e=>{
+  if(!e.target.closest("#peCrop")||!PE.pdata)return;e.preventDefault();
+  const r=$("peBox").getBoundingClientRect(),sx=e.clientX,sy=e.clientY,c0=PE.crop.slice(),mode=e.target.dataset.h||"move";
+  const mv=ev=>{PE.crop=peAdjust(c0,mode,(ev.clientX-sx)/r.width,(ev.clientY-sy)/r.height);peChanged();peCropUI()};
+  const up=()=>{removeEventListener("pointermove",mv);removeEventListener("pointerup",up);removeEventListener("pointercancel",up)};
+  addEventListener("pointermove",mv);addEventListener("pointerup",up);addEventListener("pointercancel",up);
+});
+addEventListener("resize",()=>{if(!$("pe").hidden)peLayout()});
+$("peSave").onclick=async()=>{
+  const m=PE.m;if(!m||!PE.bmp||PE.busy||!assetsNs||!db)return;
+  if(!PE.dirty){closePE(true);return}
+  PE.busy=true;const btn=$("peSave");btn.disabled=true;btn.textContent="저장 중…";
+  try{
+    await new Promise(r=>setTimeout(r,30));
+    const full=peOrient(PE.bmp,PE.k,PE.flip,3000),cw=PE.crop[2]*full.width,ch=PE.crop[3]*full.height,sc=Math.min(1,2400/Math.max(cw,ch));
+    const ow=Math.max(1,Math.round(cw*sc)),oh=Math.max(1,Math.round(ch*sc)),c=document.createElement("canvas");c.width=ow;c.height=oh;
+    c.getContext("2d").putImageData(peWarp(full,PE,PE.crop,ow,oh),0,0);
+    let blob=null;if(m.mime==="image/png")blob=await new Promise(r=>c.toBlob(r,"image/png"));
+    if(!blob||blob.size>3*1048576)blob=await new Promise(r=>c.toBlob(r,"image/jpeg",0.9));
+    if(!blob)throw {code:"x"};
+    const up=await assetsNs.upload(blob,{type:blob.type});
+    const orig=m.origAssetId||m.assetId,prev=m.assetId;
+    const upd={assetId:up.id,origAssetId:orig,mime:blob.type,edit:{k:PE.k,flip:PE.flip,ang:PE.ang,kv:PE.kv,kh:PE.kh,crop:PE.crop.map(v=>Math.round(v*1e4)/1e4)},editedAt:new Date().toISOString()};
+    if(myId)upd.editedBy=myId;
+    await db.collection("materials").doc(m._id).update(upd);
+    if(prev!==orig)assetsNs.delete(prev).catch(()=>{});
+    Object.assign(m,upd);
+    logHistory("edit",m.itemId||m.micId||m._id,{assetId:m.assetIdOf||m.model||"",type:m.itemId?((editing&&editing.type)||"장비 사진"):"장비 사진"},[{field:"unitPhoto",from:"",to:"사진 편집 · "+(m.name||"")}]);
+    closePE(true);if(!$("lb").hidden)showLb();toast("편집한 사진을 저장했습니다");
+  }catch(err){PE.busy=false;btn.disabled=false;btn.textContent="저장";toast(err&&err.code==="x"?"사진을 만들지 못했습니다.":assetErr(err))}
+};
+$("peOrig").onclick=async()=>{
+  const m=PE.m;if(!m||!m.origAssetId||PE.busy)return;
+  const ok=await askConfirm("원본 사진으로 되돌릴까요?","편집한 사진은 지워지고 처음 올린 사진으로 돌아갑니다.",null,null,"되돌리기");if(!ok)return;
+  PE.busy=true;
+  try{const prev=m.assetId,upd={assetId:m.origAssetId,origAssetId:null,edit:null,editedAt:new Date().toISOString()};
+    if(m.ext==="png")upd.mime="image/png";else if(m.ext==="jpg"||m.ext==="jpeg")upd.mime="image/jpeg";
+    await db.collection("materials").doc(m._id).update(upd);if(prev!==m.origAssetId)assetsNs.delete(prev).catch(()=>{});
+    Object.assign(m,upd);closePE(true);if(!$("lb").hidden)showLb();toast("원본 사진으로 되돌렸습니다");
+  }catch(err){PE.busy=false;toast(assetErr(err))}
+};
 $("matBtn").onclick=openMats;
 $("coverBox").onclick=()=>{const k=curKey();if(!k)return;const im=imagesFor(k);if(im.length)openLb(im,0);else openMats()};
 $("matClose").onclick=closeMats;
@@ -2085,6 +2271,7 @@ async function delMat(m){
   if(!ok)return;
   try{
     let assetLeft=false;
+    if(assetsNs&&m.origAssetId&&m.origAssetId!==m.assetId){try{await assetsNs.delete(m.origAssetId)}catch(_){}}
     if(assetsNs){try{await assetsNs.delete(m.assetId)}catch(err){if(err&&(err.code==="not_uploader"||err.code==="not_granted"))assetLeft=true;else if(!(err&&err.code==="invalid_request"))throw err}}else assetLeft=true;
     await db.collection("materials").doc(m._id).delete();
     logHistory("delete",m._id,{assetId:m.model||"",type:"장비 관련 자료 · "+(m.name||"")},[]);
