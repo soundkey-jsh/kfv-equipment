@@ -54,6 +54,10 @@ button.stat:hover{background:var(--accent-soft)}
 .stat .k{font-size:12px;color:var(--muted);letter-spacing:.02em}
 .stat .v{font-family:var(--font-mono);font-size:22px;font-weight:500;font-variant-numeric:tabular-nums}
 .stat .v small{font-size:13px;color:var(--muted);margin-left:2px}
+#micSummary{grid-template-columns:repeat(auto-fit,minmax(108px,1fr))}
+@media (max-width:600px){#micSummary{grid-template-columns:repeat(5,1fr)}#micSummary .stat{padding:9px 8px}#micSummary .stat .k{font-size:11.5px}#micSummary .stat .v{font-size:19px}#micSummary .mhide{display:none}}
+.stat.on{background:var(--accent-soft);box-shadow:inset 0 -3px 0 var(--accent)}
+.stat.kstat .k{color:var(--fg);font-weight:600}
 .stat.red .v{color:var(--red)} .stat.orange .v{color:var(--orange)} .stat.yellow .v{color:var(--yellow)} .stat.green .v{color:var(--green)} .stat.blue .v{color:var(--blue)}
 
 .filters{display:grid;grid-template-columns:minmax(200px,2fr) repeat(5,minmax(0,1fr));gap:8px}
@@ -370,6 +374,8 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .mgrid.head,.fgrid.head{background:var(--bg);color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.03em;border-bottom:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);z-index:2}
 .mgroup{display:flex;gap:8px;align-items:baseline;padding:8px 14px;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:13px;border-bottom:1px solid var(--line)}
 .mgroup .n{font-weight:500;font-size:12px;color:var(--muted)}
+.mgroup.kind{background:var(--fg);color:var(--bg);font-size:14px;padding:9px 14px}.mgroup.kind .n{color:inherit;opacity:.75}
+.mgroup.sub{background:var(--surface2,var(--accent-soft));padding:6px 14px 6px 26px;font-size:12.5px}
 .mgroup.danger{background:var(--red-bg);color:var(--red)}
 .mkind{font-family:var(--font-mono);font-size:11.5px;font-weight:700;padding:2px 6px;border-radius:4px;justify-self:start;background:var(--grey-bg);color:var(--grey)}
 .mkind.k-pin{background:var(--blue-bg);color:var(--blue)} .mkind.k-pack{background:var(--green-bg);color:var(--green)} .mkind.k-hand{background:var(--orange-bg);color:var(--orange)}
@@ -543,7 +549,7 @@ html{-webkit-text-size-adjust:100%}
         <select id="mfStat" aria-label="분류"></select>
       </div>
     </div>
-      <div class="resbar"><span><b id="micCount">0</b>개 표시</span><span class="legend">분류 칩을 누르면 바로 바꿀 수 있습니다</span></div>
+      <div class="resbar"><span class="resl"><span class="viewseg" role="group" aria-label="묶어 보기"><button type="button" class="vseg" id="mgVenue" aria-pressed="true">사용처별</button><button type="button" class="vseg" id="mgKind" aria-pressed="false">종류별</button></span><span><b id="micCount">0</b>개 표시</span></span><span class="legend">분류 칩을 누르면 바로 바꿀 수 있습니다</span></div>
     </div>
       <section class="list" aria-label="마이크 목록">
         <div class="mgrid head"><span>종류</span><span>번호</span><span>모델</span><span>구매</span><span>주 사용자</span><span>최근 수리</span><span>분류</span><span>보관 위치</span><span>상태 메모</span></div>
@@ -2588,20 +2594,31 @@ $("subFreq").onclick=()=>{location.hash="freqs"};
 /* 사용처 순서: 공연장 → 이벤트 → 조살수 → 속촌괴담 → 그 밖 */
 const VENUE_ORDER=["공연장","이벤트","조살수","속촌괴담"];
 const venueRank=v=>{const s=String(v||"");const i=VENUE_ORDER.findIndex(n=>s.startsWith(n));return i<0?VENUE_ORDER.length:i};
+/* 종류 묶음: 바디팩 → 핀 → 핸드 → 그 밖 */
+const KIND_ORDER=[["PACK","바디팩"],["PIN","핀마이크"],["HAND","핸드"]];
+const kindKey=k=>String(k||"").trim().toUpperCase();
+const kindRank=k=>{const i=KIND_ORDER.findIndex(x=>x[0]===kindKey(k));return i<0?KIND_ORDER.length:i};
+const kindName=k=>{const f=KIND_ORDER.find(x=>x[0]===kindKey(k));return f?f[1]+" ("+f[0]+")":(k||"종류 없음")};
+let micGroup="venue";try{if(localStorage.getItem("kfv.micGroup2")==="kind")micGroup="kind"}catch(_){}
 const micOrder=(a,b)=>venueRank(a.venue)-venueRank(b.venue)||String(a.venue||"").localeCompare(String(b.venue||""),"ko")||(a.seq??1e9)-(b.seq??1e9);
 function micVisible(){
   const q=MF.q.trim().toLowerCase();
   return mics.filter(m=>(!MF.venue||m.venue===MF.venue)&&(!MF.kind||m.kind===MF.kind)&&(MF.status==="*"||(m.status||"")===MF.status)&&
     (!q||searchHit([m.code,m.model,m.lastUser,m.storage,m.place,m.memo,m.venue,m.kind,checksSummary(m.checks),repSummary(m.repairs)],q)))
-   .sort(micOrder);
+   .sort((a,b)=>(micGroup==="kind"?kindRank(a.kind)-kindRank(b.kind)||kindKey(a.kind).localeCompare(kindKey(b.kind)):0)||micOrder(a,b));
 }
 function renderMics(){
   if($("micView").hidden)return;
   // 요약
   const sm=$("micSummary");sm.replaceChildren();
-  const box=(k,v,cls,st)=>{const d=el("button","stat"+(cls?" "+cls:""));d.type="button";d.onclick=()=>{MF.status=st;renderMics()};d.append(el("span","k",k),el("span","v",String(v)));sm.append(d)};
-  box("전체 마이크",mics.length,"","*");
-  [["정상","green"],["보관","yellow"],["스페어","blue"],["수리","orange"],["고장","red"],["폐기",""]].forEach(([s,c])=>box(s,mics.filter(m=>m.status===s).length,c,s));
+  const box=(k,v,cls,st,on)=>{const d=el("button","stat"+(cls?" "+cls:"")+(on?" on":""));d.type="button";d.setAttribute("aria-pressed",String(!!on));d.onclick=()=>{if(st==="*"){MF.status="*";MF.kind=""}else MF.status=MF.status===st?"*":st;renderMics()};d.append(el("span","k",k),el("span","v",String(v)));sm.append(d)};
+  box("전체 마이크",mics.length,"","*",MF.status==="*"&&!MF.kind);
+  {const k0=sm.querySelector(".stat .k");if(k0){k0.textContent="전체";k0.append(el("span","mhide"," 마이크"))}}
+  [["정상","green"],["보관","yellow"],["스페어","blue"],["수리","orange"],["고장","red"],["폐기",""]].forEach(([s,c])=>box(s,mics.filter(m=>m.status===s).length,c,s,MF.status===s));
+  // 종류별 개수 (누르면 그 종류만, 다시 누르면 해제)
+  [["PIN","핀마이크"],["PACK","바디팩"],["HAND","핸드"]].forEach(([k,lab])=>{const raw=mics.find(m=>kindKey(m.kind)===k);const val=raw?raw.kind:k;const on=!!MF.kind&&kindKey(MF.kind)===k;
+    const d=el("button","stat kstat"+(on?" on":""));d.type="button";d.setAttribute("aria-pressed",String(on));d.title=lab+"만 보기";
+    d.onclick=()=>{MF.kind=on?"":val;renderMics()};d.append(el("span","k",lab),el("span","v",String(mics.filter(m=>kindKey(m.kind)===k).length)));sm.append(d)});
   // 필터
   fillSelect($("mfVenue"),["","전체 사용처"],uniq(mics.map(m=>m.venue)).sort((a,b)=>venueRank(a)-venueRank(b)||String(a).localeCompare(String(b),"ko")),MF.venue);
   fillSelect($("mfKind"),["","전체 종류"],uniq(mics.map(m=>m.kind)),MF.kind);
@@ -2612,9 +2629,11 @@ function renderMics(){
   const list=micVisible();$("micCount").textContent=String(list.length);
   if(!mics.length){const e=el("div","empty");e.append(el("strong",null,"등록된 마이크가 없습니다"),el("span",null,"‘+ 마이크 추가’로 첫 마이크를 등록하세요."));r.append(e);return}
   if(!list.length){r.append(el("div","empty","조건에 맞는 마이크가 없습니다."));return}
-  let lastVenue=null;const frag=document.createDocumentFragment();
+  $("mgKind").setAttribute("aria-pressed",String(micGroup==="kind"));$("mgVenue").setAttribute("aria-pressed",String(micGroup==="venue"));
+  let lastVenue=null,lastKind=null;const frag=document.createDocumentFragment();const byKind=micGroup==="kind";
   list.forEach(m=>{
-    if(m.venue!==lastVenue){lastVenue=m.venue;const n=list.filter(x=>x.venue===m.venue).length;const g=el("div","mgroup");g.append(el("span",null,m.venue||"사용처 없음"),el("span","n",n+"개"));frag.append(g)}
+    if(byKind&&kindKey(m.kind)!==lastKind){lastKind=kindKey(m.kind);lastVenue=null;const n=list.filter(x=>kindKey(x.kind)===lastKind).length;const g=el("div","mgroup kind");g.append(el("span",null,kindName(m.kind)),el("span","n",n+"개"));frag.append(g)}
+    if(m.venue!==lastVenue){lastVenue=m.venue;const n=list.filter(x=>x.venue===m.venue&&(!byKind||kindKey(x.kind)===lastKind)).length;const g=el("div","mgroup"+(byKind?" sub":""));g.append(el("span",null,m.venue||"사용처 없음"),el("span","n",n+"개"));frag.append(g)}
     const row=el("div","mgrid row");row.tabIndex=0;row.setAttribute("role","button");
     row.append(el("span","mkind k-"+String(m.kind||"").toLowerCase(),m.kind||"—"),el("span","mcode",m.code||"—"),el("span","mmodel",m.model||"—"),el("span","mbought",m.bought||""),el("span","muser",m.lastUser||""));
     const lr=(m.repairs||[]).slice().sort((x,y)=>String(y.doneAt||y.failedAt||"").localeCompare(String(x.doneAt||x.failedAt||"")))[0];
@@ -2674,6 +2693,7 @@ function micStoreCell(m){
   wrap.append(b);return wrap;
 }
 $("mq").oninput=e=>{MF.q=e.target.value;renderMics()};
+[["mgKind","kind"],["mgVenue","venue"]].forEach(([id,v])=>$(id).onclick=()=>{micGroup=v;try{localStorage.setItem("kfv.micGroup2",v)}catch(_){}renderMics()});
 ["mfVenue","mfKind","mfStat"].forEach(id=>$(id).onchange=()=>{MF.venue=$("mfVenue").value;MF.kind=$("mfKind").value;MF.status=$("mfStat").value;renderMics()});
 
 /* ---------- 마이크 편집 ---------- */
