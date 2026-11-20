@@ -224,6 +224,8 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .act.add{color:var(--green);background:var(--green-bg)} .act.edit{color:var(--blue);background:var(--blue-bg)} .act.del{color:var(--red);background:var(--red-bg)}
 .hwhat{font-weight:600;font-size:13.5px;overflow-wrap:anywhere}
 .hwhat .aid{font-weight:500;color:var(--muted);margin-left:6px}
+.hwhat.hlink{cursor:pointer;border-radius:6px;align-self:flex-start}.hwhat.hlink:hover,.hwhat.hlink:focus-visible{color:var(--accent)}
+.hgo{font-size:12px;font-weight:500;color:var(--accent);margin-left:8px;white-space:nowrap}.hgone{font-size:12px;font-weight:500;color:var(--muted);margin-left:8px}
 .hch{font-size:13px;display:grid;grid-template-columns:84px minmax(0,1fr);gap:2px 8px}
 .hch .k{color:var(--muted)}
 .hch .v{overflow-wrap:anywhere;white-space:pre-line}
@@ -1191,16 +1193,23 @@ function searchVariants(q){
 }
 function searchHit(fields,q){
   const hay=fields.map(v=>String(v||"").toLowerCase()).join(" \u0001 ");
-  const hayNs=hay.replace(/[\s\-_]/g,"");
+  const hayNs=hay.replace(/[\s\-_.]/g,"");
   return searchVariants(q).some(v=>{const t=v.trim();if(!t)return true;
-    // 여러 단어면 모두 포함, 띄어쓰기·하이픈 차이는 무시
-    return t.split(/\s+/).every(w=>hay.includes(w)||hayNs.includes(w.replace(/[\-_]/g,"")))||hayNs.includes(t.replace(/[\s\-_]/g,""))});
+    // 여러 단어면 모두 포함, 띄어쓰기·하이픈·점 차이는 무시
+    return t.split(/\s+/).every(w=>hay.includes(w)||hayNs.includes(w.replace(/[\-_.]/g,"")))||hayNs.includes(t.replace(/[\s\-_.]/g,""))});
+}
+// 관리번호를 점·하이픈으로 끊어 검색 (예: ST.RX.G3.18.1 → ST-RX-SE-G3-18-1). 중간 칸은 건너뛰어도 순서대로 맞으면 찾음
+function codeHit(id,q){
+  q=q.trim();if(!/^[a-z0-9]+(?:[.\-][a-z0-9]*){2,}$/i.test(q))return false;
+  const t=q.toLowerCase().split(/[.\-]/).filter(Boolean),seg=String(id||"").toLowerCase().split("-"),open=!/[.\-]$/.test(q);let j=0;
+  for(let i=0;i<seg.length&&j<t.length;i++){const last=open&&j===t.length-1;if(last?seg[i].startsWith(t[j]):seg[i]===t[j])j++}
+  return j===t.length;
 }
 function visible(){
   const q=F.q.trim().toLowerCase();
   return channelOrder(items.filter(i=>(!F.type||i.type===F.type)&&(!F.model||i.model===F.model)&&(!F.cat||i.category===F.cat)&&(!F.field||i.field===F.field)&&(!F.loc||i.location===F.loc)&&
     (F.use==="*"||(i.usage||"")===F.use)&&(F.label==="*"||(i.label||"")===F.label)&&
-    (!q||searchHit([i.assetId,i.type,i.manufacturer,i.model,i.location,i.assign,i.sn,i.issues,i.notes,i.category,i.field,i.maintenance,repSummary(i.repairs)],q)))
+    (!q||codeHit(i.assetId,q)||searchHit([i.assetId,i.type,i.manufacturer,i.model,i.location,i.assign,i.sn,i.issues,i.notes,i.category,i.field,i.maintenance,repSummary(i.repairs)],q)))
    .sort((a,b)=>(a.seq??1e9)-(b.seq??1e9)));
 }
 // 용도에 번호(예: W/L 3, 인이어 바디팩 11번)가 있으면, 같은 Field·타입·위치·이름끼리 번호 순으로 보여줌
@@ -1510,7 +1519,7 @@ function formSnap(){
   return JSON.stringify([v,cleanRepairs(repairs)]);
 }
 function isDirty(){return canWrite&&(panelForceDirty||formSnap()!==panelSnap)}
-function closePanel(){$("overlay").hidden=true;editing=null;panelForceDirty=false;
+function closePanel(){$("overlay").hidden=true;editing=null;panelForceDirty=false;histReturn();
   if($("modelModal").hidden)document.documentElement.classList.remove("noscroll");else refreshModelModal()}
 async function requestClose(){
   if($("overlay").hidden||closing)return;
@@ -1819,6 +1828,20 @@ async function logHistory(action,itemId,item,changes){
   if(user){try{const id=await user.id();if(id)e.by=id}catch(_){}}
   try{await db.collection("history").add(e)}catch(_){}
 }
+// 히스토리 기록 → 해당 장비·핀마이크·주파수 찾기
+function histTarget(h){
+  const id=h.itemId;let it=id&&items.find(i=>i.id===id);
+  const mt=!it&&id&&mats.find(m=>m._id===id);if(mt&&mt.itemId)it=items.find(i=>i.id===mt.itemId);
+  if(!it&&h.assetId&&/^[A-Z0-9]+(-[A-Z0-9]+){3,}$/.test(h.assetId)&&h.action!=="delete")it=items.find(i=>i.assetId===h.assetId);
+  if(it)return {kind:"장비",open:()=>openPanel(it)};
+  if(mt&&mt.kind==="image")return {kind:"사진",open:()=>openLb([mt],0)};
+  const mc=id&&mics.find(m=>m._id===id);if(mc)return {kind:"마이크",open:()=>openMic(mc)};
+  const fq=id&&freqs.find(f=>f._id===id);if(fq)return {kind:"주파수",open:()=>openFreq(fq)};
+  return null;
+}
+let histBack=false;
+function goHist(t){$("histOverlay").hidden=true;histBack=true;t.open()}
+function histReturn(){if(!histBack)return;histBack=false;setTimeout(()=>{$("histOverlay").hidden=false;renderHist()},0)}
 let hist=[],histLimit=200,histUnsub=null,histQ="",canDelHist=false,histShown=[];
 function hItem(h,showItem,onDel){
   const d=el("div","hitem");const m=el("div","hmeta");
@@ -1826,7 +1849,12 @@ function hItem(h,showItem,onDel){
   const who=el("span","who",h.by?"…":"(이름 없음)");m.append(who);
   m.append(el("span","act "+({add:"add",edit:"edit",delete:"del",restore:"restore"}[h.action]||"edit"),{add:"추가",edit:"수정",delete:"삭제",restore:"백업 복원"}[h.action]||"수정"));
   d.append(m);
-  if(showItem){const w=el("div","hwhat",h.type||"(장비)");w.append(el("span","aid",h.assetId||""));d.append(w)}
+  if(showItem){const w=el("div","hwhat",h.type||"(장비)");w.append(el("span","aid",h.assetId||""));
+    const t=histTarget(h);
+    if(t){w.classList.add("hlink");w.tabIndex=0;w.setAttribute("role","button");w.title="눌러서 이 "+t.kind+" 열기";w.append(el("span","hgo",t.kind+" 열기 ›"));
+      w.onclick=()=>goHist(t);w.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();goHist(t)}}}
+    else if(h.action!=="restore"&&h.action!=="delete"&&h.itemId)w.append(el("span","hgone","지금은 없음"));
+    d.append(w)}
   if(canDelHist&&h._id){
     const b=el("button","btn ghost hdel","삭제");b.type="button";b.title="이 기록 삭제";
     b.onclick=async()=>{
@@ -1873,7 +1901,7 @@ $("histDelAll").onclick=async()=>{
   catch(err){toast(n+"개 삭제 후 멈췄습니다: "+errMsg(err))}
   finally{b.disabled=false}
 };
-$("histClose").onclick=()=>{$("histOverlay").hidden=true};
+$("histClose").onclick=()=>{$("histOverlay").hidden=true;histBack=false};
 $("histOverlay").addEventListener("click",e=>{if(e.target===$("histOverlay"))$("histOverlay").hidden=true});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("histOverlay").hidden)$("histOverlay").hidden=true});
 $("histQ").oninput=e=>{histQ=e.target.value;renderHist()};
@@ -1981,7 +2009,7 @@ function renderMats(){
 }
 // 사진 크게 보기
 function openLb(list,idx){lbList=list;lbIdx=idx;$("lb").hidden=false;showLb()}
-function closeLb(){$("lb").hidden=true;$("lbImg").removeAttribute("src")}
+function closeLb(){$("lb").hidden=true;$("lbImg").removeAttribute("src");histReturn()}
 function showLb(){
   const m=lbList[lbIdx];if(!m){closeLb();return}
   const img=$("lbImg");img.src=blobUrl(m.assetId);img.alt=m.name||"장비 사진";
@@ -2677,7 +2705,7 @@ function openMic(m){
 }
 $("mRepAdd").onclick=()=>{micRepairs.unshift({id:Math.random().toString(36).slice(2,9),failedAt:todayStr(),symptom:"",work:"",doneAt:"",vendor:"",_open:true});repairsUI($("mRepList"),micRepairs,canWrite,ownerMic);
   setTimeout(()=>{const f=document.getElementById("rep-"+micRepairs[0].id+"-symptom");if(f)f.focus()},0)};
-function closeMic(){$("micOverlay").hidden=true;editMic=null}
+function closeMic(){$("micOverlay").hidden=true;editMic=null;histReturn()}
 async function requestCloseMic(){
   if($("micOverlay").hidden)return;
   if(!canWrite||micFormSnap()===micSnap){closeMic();return}
@@ -2952,7 +2980,7 @@ function renderRec(tmp){
     b.onclick=()=>{if(c.code&&(isBlx(tmp.model)||isEw(tmp.model)))$("q-group").value=c.code;else if(isEw(tmp.model)&&ewCodeOk($("q-group").value))$("q-group").value="U.1";ewAuto=false;$("q-mhz").value=c.mhz.toFixed(3);freqLive()};
     chips.append(b)});
 }
-function closeFreq(){$("freqOverlay").hidden=true;editFreq=null}
+function closeFreq(){$("freqOverlay").hidden=true;editFreq=null;histReturn()}
 async function requestCloseFreq(){
   if($("freqOverlay").hidden)return;
   if(!canWrite||freqFormSnap()===freqSnap){closeFreq();return}
