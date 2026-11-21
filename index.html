@@ -220,6 +220,85 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .hacts{display:flex;gap:8px;flex-wrap:wrap}
 .hdel{margin-left:auto;font-size:12px;padding:2px 6px;color:var(--red)}
 .hlist{display:flex;flex-direction:column}
+/* 공지사항 */
+/* 작업 목록 */
+#tkOverlay .panel{width:min(600px,100%)}
+.tkhead{display:flex;align-items:center;gap:8px}.tkhead h2{flex:1;min-width:0;overflow-wrap:anywhere}
+.tktop{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.tkcard{display:flex;flex-direction:column;gap:8px;text-align:left;width:100%;border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:var(--surface);color:inherit;font:inherit;cursor:pointer}
+.tkcard:hover{border-color:var(--accent)}
+.tkch{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.tkch b{font-size:15px;flex:1;min-width:0;overflow-wrap:anywhere}
+.tkkind{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.tkkind.k-2{background:color-mix(in srgb,var(--green) 15%,transparent);color:var(--green)}
+.tkkind.k-3{background:color-mix(in srgb,var(--orange) 15%,transparent);color:var(--orange)}
+.tkkind.k-4,.tkkind.k-0{background:var(--line);color:var(--muted)}
+.tkdue{font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap}.tkdue.late{color:var(--red)}
+.tkby{font-size:12px;color:var(--muted);margin-left:auto}
+.tkbar{display:flex;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.tkbar i{display:block;height:100%}.tkbar .g{background:var(--green)}.tkbar .o{background:var(--orange)}
+.tkcm{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.tkinfo{display:flex;flex-direction:column;gap:8px}
+.tkmemo{margin:0;white-space:pre-wrap;font-size:13.5px;line-height:1.55;overflow-wrap:anywhere}
+.tkpct{font-size:13px;color:var(--muted)}
+.tkacts{display:flex;gap:6px;flex-wrap:wrap}.tkacts .btn{font-size:12.5px;padding:5px 10px}
+.tkadd{display:flex;flex-direction:column;padding:10px 12px;border:1px dashed var(--line);border-radius:8px}
+.tkaddh{font-size:13.5px;font-weight:700;cursor:pointer;color:var(--accent)}
+.tkadd[open]{gap:8px}.tkadd>*:not(summary){margin-top:8px}
+.tkadd input{width:100%;font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg)}
+.tkres{display:flex;flex-direction:column;gap:4px}.tkres>.btn{align-self:flex-start}
+.tkresr{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line)}.tkresr .btn{padding:4px 12px;font-size:12.5px}
+.tkquick{display:flex;gap:6px;flex-wrap:wrap}.tkquick .btn{font-size:12.5px;padding:5px 10px}
+.tkseg{align-self:flex-start;flex-wrap:wrap}
+.tklist{display:flex;flex-direction:column}
+.tkloc{font-size:12px;font-weight:700;color:var(--muted);padding:10px 2px 4px;border-bottom:1px solid var(--line)}
+.tkrow{display:flex;align-items:flex-start;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line)}
+.tkrow.st-done{background:color-mix(in srgb,var(--green) 7%,transparent)}
+.tkrow.st-issue{background:color-mix(in srgb,var(--orange) 9%,transparent)}
+.tkck{flex:none;width:30px;height:30px;border-radius:7px;border:2px solid var(--line);background:var(--surface);color:#fff;font-size:18px;font-weight:700;line-height:1;cursor:pointer;margin-top:1px}
+.tkck:enabled:hover{border-color:var(--green)}
+.st-done .tkck{background:var(--green);border-color:var(--green)}
+.tkck:disabled{cursor:default}
+.tkmid{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.tklab{all:unset;font-family:var(--font-mono);font-weight:600;font-size:14px;cursor:pointer;overflow-wrap:anywhere}
+.tklab:hover,.tklab:focus-visible{color:var(--accent);text-decoration:underline}
+.tklab:disabled{cursor:default;color:var(--muted);text-decoration:none}
+.st-done .tklab{text-decoration:line-through;text-decoration-color:var(--muted)}
+.tksub{font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}
+.tkwho{font-size:12px;font-weight:600;color:var(--green)}.st-issue .tkwho{color:var(--orange)}
+.tknote{margin-top:4px;width:100%;font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg)}
+.tknotev{font-size:13px;color:var(--orange);overflow-wrap:anywhere}
+.tkright{display:flex;align-items:center;gap:4px;flex:none}
+.tkiss{padding:4px 9px;font-size:12px}.tkiss.on{background:var(--orange);border-color:var(--orange);color:#fff}
+.tkx{all:unset;cursor:pointer;color:var(--muted);font-size:14px;padding:4px 6px;border-radius:4px}.tkx:hover{color:var(--red);background:var(--line)}
+.tkrounds summary{cursor:pointer;font-size:13px;font-weight:600;padding:6px 0}
+.tkround{font-size:13px;padding:6px 0;border-top:1px solid var(--line)}.tkri{font-size:12.5px;color:var(--orange);padding-left:10px}
+.tkfrow{display:flex;gap:10px;flex-wrap:wrap;font-size:13px}.tkfrow label{display:flex;align-items:center;gap:6px}
+.tkfrow select,.tkfrow input{font:inherit;padding:7px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg)}
+.tkbox{display:flex;flex-direction:column;gap:8px}
+.tkpl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}
+.tkpl .tklab{font-family:inherit;font-size:13.5px}
+.tkpls{color:var(--muted)}.tkpls.st-done{color:var(--green);font-weight:600}.tkpls.st-issue{color:var(--orange);font-weight:600}
+.tkplp{font-size:12px;color:var(--muted)}
+.tkpadd{display:flex;gap:6px;flex-wrap:wrap}.tkpadd select{flex:1;min-width:160px;font:inherit;padding:7px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg)}
+.tkpadd .btn{font-size:12.5px;padding:6px 10px}
+.ntbtn{position:relative}
+.ntdot{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;margin-left:6px;border-radius:9px;background:var(--red);color:#fff;font-size:11px;font-weight:700;line-height:1}
+.ntform{display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.ntform input,.ntform textarea{width:100%;font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg)}
+.ntform textarea{min-height:120px;resize:vertical;line-height:1.55}
+.ntform .ntfacts{display:flex;justify-content:flex-end;gap:8px}
+.ntguest{font-size:13px;color:var(--muted);margin:0}
+.ntlist{display:flex;flex-direction:column;gap:10px}
+.ntitem{border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}
+.ntitem.pin{border-color:var(--accent);background:var(--accent-soft)}
+.nttop{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.nttop h3{margin:0;font-size:15.5px;line-height:1.4;overflow-wrap:anywhere;flex:1 1 100%}
+.ntpin,.ntnew{font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px}
+.ntpin{background:var(--accent);color:var(--on-accent)}.ntnew{background:var(--red);color:#fff}
+.ntbody{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.6}
+.ntbody a{color:var(--accent)}
+.ntmeta{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.ntacts{display:flex;gap:6px;flex-wrap:wrap}.ntacts .btn{padding:4px 10px;font-size:12.5px}
 .hitem{border-bottom:1px solid var(--line);padding:10px 0;display:flex;flex-direction:column;gap:4px}
 .hitem:last-child{border-bottom:0}
 .hmeta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
@@ -490,6 +569,8 @@ html{-webkit-text-size-adjust:100%}
       <p class="lastmod" id="lastMod" hidden></p>
     </div>
     <div class="hd-actions">
+      <button class="btn ntbtn" id="ntBtn" type="button">공지사항<span class="ntdot" id="ntDot" hidden></span></button>
+      <button class="btn" id="tkBtn" type="button">작업 목록</button>
       <button class="btn" id="histBtn" type="button">수정 히스토리</button>
       <button class="btn" id="bkBtn" type="button" hidden>장비 대장 백업</button>
       <button class="btn" id="pubBtn" type="button" hidden>공개본 갱신하기</button>
@@ -651,6 +732,7 @@ html{-webkit-text-size-adjust:100%}
 
     <div class="field"><label for="f-notes">Notes</label><textarea id="f-notes" rows="2" data-ph="예: Range: B (626~668MHz)"></textarea></div>
 
+    <div class="tkbox" id="tkE" hidden></div>
     <p class="meta" id="f-meta" hidden></p>
     <div id="itemHist" hidden><div class="sect sect-row"><span>변경 기록</span><button type="button" class="btn danger" id="itemHistDel" hidden>이 장비 기록 모두 삭제</button></div><div class="hlist" id="itemHistList"></div></div>
     <div id="confirmBox" class="confirm" hidden>
@@ -762,6 +844,25 @@ html{-webkit-text-size-adjust:100%}
     <div class="hlist" id="bkList"></div>
   </div>
 </div>
+<div class="overlay" id="tkOverlay" hidden>
+  <div class="panel" role="dialog" aria-labelledby="tkTitleH">
+    <div class="hhead tkhead"><button type="button" class="btn" id="tkBack" hidden aria-label="작업 목록으로">‹ 목록</button><h2 id="tkTitleH">작업 목록</h2><button type="button" class="btn" id="tkClose">닫기</button></div>
+    <div id="tkBody" class="tkinfo" style="gap:12px"></div>
+  </div>
+</div>
+<div class="overlay" id="ntOverlay" hidden>
+  <div class="panel" role="dialog" aria-labelledby="ntTitleH">
+    <div class="hhead"><h2 id="ntTitleH">공지사항</h2><span class="hacts"><button type="button" class="btn danger" id="ntDelAll" hidden>전체 삭제</button><button type="button" class="btn" id="ntClose">닫기</button></span></div>
+    <div class="ntform" id="ntForm" hidden>
+      <input id="ntTitle" type="text" maxlength="120" placeholder="제목" aria-label="공지 제목">
+      <textarea id="ntBody" maxlength="5000" placeholder="내용 (링크를 넣으면 눌러서 열 수 있습니다)" aria-label="공지 내용"></textarea>
+      <p class="err" id="ntErr" hidden></p>
+      <div class="ntfacts"><button type="button" class="btn" id="ntCancel" hidden>취소</button><button type="button" class="btn primary" id="ntSave">등록</button></div>
+    </div>
+    <p class="ntguest" id="ntGuest">공지는 누구나 볼 수 있고, 글쓰기는 음향감독만 할 수 있습니다.</p>
+    <div class="ntlist" id="ntList"></div>
+  </div>
+</div>
 <div class="overlay" id="histOverlay" hidden>
   <div class="panel" role="dialog" aria-labelledby="histTitle">
     <div class="hhead"><h2 id="histTitle">수정 히스토리</h2><span class="hacts"><button type="button" class="btn danger" id="histDelAll" hidden>표시된 기록 삭제</button><button type="button" class="btn" id="histClose">닫기</button></span></div>
@@ -826,6 +927,7 @@ html{-webkit-text-size-adjust:100%}
     <div class="reps" id="mRepList"></div>
     <div class="field"><label for="m-place">상태 메모</label><textarea id="m-place" rows="2" data-ph="예: 실리콘튜브 교체 필요"></textarea></div>
     <div class="field"><label for="m-memo">메모</label><textarea id="m-memo" rows="2"></textarea></div>
+    <div class="tkbox" id="tkM" hidden></div>
     <p class="meta" id="m-meta" hidden></p>
     <div id="micConfirm" class="confirm" hidden><span>이 마이크를 삭제할까요? 되돌릴 수 없습니다.</span><button type="button" class="btn danger" id="micConfirmDel">삭제</button><button type="button" class="btn" id="micCancelDel">취소</button></div>
     <div class="panel-actions"><button type="button" class="btn danger" id="micDel" hidden>마이크 삭제</button></div>
@@ -1505,7 +1607,7 @@ function openPanel(item,over,focusId){
   $("f-number").value=item?String(numOf(item.assetId)||""):"";
   $("f-usage").value=base.usage||"";$("f-label").value=base.label||"";
   ID_KEYS.forEach(k=>$("n-"+k).value="");
-  $("f-err").hidden=true;$("confirmBox").hidden=true;$("delBtn").hidden=!item||!canWrite;
+  $("f-err").hidden=true;$("confirmBox").hidden=true;$("delBtn").hidden=!item||!canWrite;tkPanel("eq",item&&item.id);
   const meta=$("f-meta");
   if(item&&item.updatedAt){meta.hidden=false;meta.textContent="마지막 수정: "+new Date(item.updatedAt).toLocaleString("ko-KR");
     if(item.updatedBy&&user){getProfiles([item.updatedBy]).then(ps=>{const nm=ps&&ps[item.updatedBy]&&ps[item.updatedBy].name;if(nm&&editing===item)meta.textContent+=" · "+nm}).catch(()=>{})}}
@@ -1847,7 +1949,7 @@ function histTarget(h){
 }
 let histBack=false;
 function goHist(t){$("histOverlay").hidden=true;histBack=true;t.open()}
-function histReturn(){if(!histBack)return;histBack=false;setTimeout(()=>{$("histOverlay").hidden=false;renderHist()},0)}
+function histReturn(){if(tkBack){tkBack=false;setTimeout(()=>{$("tkOverlay").hidden=false;document.documentElement.classList.add("noscroll");renderTk()},0);return}if(!histBack)return;histBack=false;setTimeout(()=>{$("histOverlay").hidden=false;renderHist()},0)}
 let hist=[],histLimit=200,histUnsub=null,histQ="",canDelHist=false,histShown=[];
 function hItem(h,showItem,onDel){
   const d=el("div","hitem");const m=el("div","hmeta");
@@ -2181,6 +2283,288 @@ $("peOrig").onclick=async()=>{
     Object.assign(m,upd);closePE(true);if(!$("lb").hidden)showLb();toast("원본 사진으로 되돌렸습니다");
   }catch(err){PE.busy=false;toast(assetErr(err))}
 };
+/* ---------- 공지사항: 누구나 읽기 · 편집자 글쓰기 · 글쓴이 자기 글 수정/삭제 · 소유자 전체 삭제 ---------- */
+let notices=[],ntSubbed=false,ntEditId=null,ntMyName="";
+const ntCanWrite=()=>!!db&&canWrite&&!!myId;
+const ntMine=n=>!!myId&&n.by===myId;
+const ntWhen=t=>t?new Date(t).toLocaleString("ko-KR",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}):"";
+function ntSeen(){try{return localStorage.getItem("kfv.ntSeen")||""}catch(_){return ""}}
+function ntMarkSeen(){const t=notices.reduce((a,n)=>n.at>a?n.at:a,"");if(t)try{localStorage.setItem("kfv.ntSeen",t)}catch(_){};ntDot()}
+function ntDot(){const s=ntSeen(),n=notices.filter(x=>x.at&&x.at>s&&!ntMine(x)).length;const d=$("ntDot");d.hidden=!n;d.textContent=n>9?"9+":String(n)}
+function ntLinkify(node,text){
+  const re=/(https?:\/\/[^\s<>"']+)/g;let last=0,m;
+  while((m=re.exec(text))){if(m.index>last)node.append(document.createTextNode(text.slice(last,m.index)));
+    const a=el("a",null,m[1]);a.href=m[1];a.target="_blank";a.rel="noopener noreferrer";node.append(a);last=m.index+m[1].length}
+  if(last<text.length)node.append(document.createTextNode(text.slice(last)));
+}
+function renderNotices(){
+  const L=$("ntList");L.replaceChildren();
+  const w=ntCanWrite();$("ntForm").hidden=!w;$("ntDelAll").hidden=!(amOwner&&notices.length);
+  $("ntGuest").hidden=w;
+  const list=notices.slice().sort((a,b)=>(!!b.pin-!!a.pin)||String(b.at||"").localeCompare(String(a.at||"")));
+  if(!list.length){L.append(el("p","empty",ntSubbed?"아직 공지가 없습니다.":"공지를 불러오는 중…"));return}
+  const seen=ntSeen();
+  list.forEach(n=>{
+    const d=el("article","ntitem"+(n.pin?" pin":""));
+    const top=el("div","nttop");if(n.pin)top.append(el("span","ntpin","고정"));
+    if(n.at&&n.at>seen&&!ntMine(n))top.append(el("span","ntnew","새 글"));
+    top.append(el("h3",null,n.title||"(제목 없음)"));d.append(top);
+    if(n.body){const b=el("div","ntbody");ntLinkify(b,String(n.body));d.append(b)}
+    const meta=el("div","ntmeta");meta.append(el("span",null,(n.byName||"음향감독")+" · "+ntWhen(n.at)+(n.editedAt?" (수정됨)":"")));
+    const acts=el("span","ntacts");
+    if(amOwner){const p=el("button","btn",n.pin?"고정 해제":"맨 위 고정");p.type="button";p.onclick=async()=>{p.disabled=true;try{await db.collection("notices").doc(n._id).update({pin:!n.pin})}catch(err){p.disabled=false;toast(errMsg(err))}};acts.append(p)}
+    if(ntMine(n)&&w){const e=el("button","btn","수정");e.type="button";e.onclick=()=>ntEdit(n);acts.append(e)}
+    if((ntMine(n)&&w)||amOwner){const x=el("button","btn danger","삭제");x.type="button";x.onclick=async()=>{
+      const ok=await askConfirm("이 공지를 삭제할까요?",n.title||"",null,null,"삭제");if(!ok)return;
+      try{await db.collection("notices").doc(n._id).delete();if(ntEditId===n._id)ntReset();toast("공지를 삭제했습니다")}catch(err){toast(errMsg(err))}};acts.append(x)}
+    if(acts.childNodes.length)meta.append(acts);
+    d.append(meta);L.append(d);
+  });
+}
+function ntReset(){ntEditId=null;$("ntTitle").value="";$("ntBody").value="";$("ntSave").textContent="등록";$("ntCancel").hidden=true;$("ntErr").hidden=true}
+function ntEdit(n){ntEditId=n._id;$("ntTitle").value=n.title||"";$("ntBody").value=n.body||"";$("ntSave").textContent="수정 저장";$("ntCancel").hidden=false;$("ntErr").hidden=true;
+  $("ntOverlay").querySelector(".panel").scrollTo({top:0,behavior:"smooth"});setTimeout(()=>$("ntTitle").focus(),0)}
+function ntSub(){if(ntSubbed||!db)return;
+  db.collection("notices").onSnapshot(s=>{notices=s.docs.map(x=>Object.assign({_id:x.id},x.data()));ntSubbed=true;ntDot();if(!$("ntOverlay").hidden){renderNotices();ntMarkSeen()}},()=>{ntSubbed=true;if(!$("ntOverlay").hidden)renderNotices()});
+}
+$("ntBtn").onclick=()=>{$("ntOverlay").hidden=false;document.documentElement.classList.add("noscroll");ntSub();renderNotices();ntMarkSeen()};
+function ntClose(){if(ntEditId||($("ntTitle").value+$("ntBody").value).trim()){/* 쓰던 글은 그대로 남겨 둠 */}
+  $("ntOverlay").hidden=true;if($("overlay").hidden&&$("modelModal").hidden)document.documentElement.classList.remove("noscroll")}
+$("ntClose").onclick=ntClose;
+$("ntOverlay").addEventListener("click",e=>{if(e.target===$("ntOverlay"))ntClose()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("ntOverlay").hidden&&$("askModal").hidden)ntClose()});
+$("ntCancel").onclick=ntReset;
+$("ntSave").onclick=async()=>{
+  if(!ntCanWrite())return;
+  const title=$("ntTitle").value.trim(),body=$("ntBody").value.replace(/\s+$/,""),err=$("ntErr");
+  if(!title){err.textContent="제목을 입력하세요.";err.hidden=false;$("ntTitle").focus();return}
+  const btn=$("ntSave");btn.disabled=true;err.hidden=true;
+  try{
+    if(ntEditId){await db.collection("notices").doc(ntEditId).update({title,body,editedAt:new Date().toISOString()});toast("공지를 수정했습니다")}
+    else{
+      if(!ntMyName&&user){try{const p=await user.profiles([myId]);ntMyName=(p&&p[myId]&&p[myId].name)||""}catch(_){}}
+      await db.collection("notices").add({title,body,by:myId,byName:ntMyName||"음향감독",at:new Date().toISOString(),pin:false});toast("공지를 올렸습니다")}
+    ntReset();
+  }catch(e){err.textContent=errMsg(e);err.hidden=false}
+  finally{btn.disabled=false}
+};
+$("ntDelAll").onclick=async()=>{
+  if(!amOwner||!notices.length)return;
+  const ok=await askConfirm("공지 "+notices.length+"개를 모두 삭제할까요?","삭제한 공지는 되돌릴 수 없습니다.",null,null,"전체 삭제");if(!ok)return;
+  const btn=$("ntDelAll");btn.disabled=true;let fail=0;
+  for(const n of notices.slice()){try{await db.collection("notices").doc(n._id).delete()}catch(_){fail++}}
+  btn.disabled=false;ntReset();toast(fail?fail+"개는 삭제하지 못했습니다":"공지를 모두 삭제했습니다");
+};
+/* ---------- 작업 목록: 청소·점검·테스트할 장비/핀마이크를 담고 체크 ----------
+   tasks/<id>     : {name, kind, due, memo, by, byName, at, round, rounds:[…]}
+   taskitems/<id> : {list, t:"eq"|"mic", ref, lab, st:""|"done"|"issue", note, who, whoName, when, at, prev}
+   누구나 보기 · 음향감독 담기/체크 · 목록 삭제는 만든 사람 또는 소유자 */
+const TK_KINDS=["청소","점검","테스트","기타"];
+let tkAddOpen=false,tkPending=false,tasks=[],tkItems=[],tkSubbed=false,tkQ="",tkCur=null,tkFilter="all",tkBack=false,tkEditing=null,tkName="";
+const tkCanWrite=()=>!!db&&canWrite&&!!myId;
+const tkCanDel=t=>tkCanWrite()&&(amOwner||t.by===myId);
+async function tkMyName(){if(tkName)return tkName;if(typeof ntMyName==="string"&&ntMyName)return tkName=ntMyName;
+  if(user&&myId){try{const p=await user.profiles([myId]);tkName=(p&&p[myId]&&p[myId].name)||""}catch(_){}}return tkName||"음향감독"}
+const tkId=(list,t,ref)=>(list+"__"+t+"__"+ref).replace(/[^A-Za-z0-9_-]/g,"_").slice(0,180);
+function tkRef(e){if(e.t==="mic"){const m=mics.find(x=>x._id===e.ref);return m?{ok:true,lab:micTitle(m),sub:[m.kind,m.model].filter(Boolean).join(" · "),loc:m.storage||m.venue||"",open:()=>openMic(m)}:null}
+  const i=items.find(x=>x.id===e.ref);return i?{ok:true,lab:i.assetId||"(관리번호 없음)",sub:[i.type,[i.manufacturer,i.model].filter(Boolean).join(" ")].filter(Boolean).join(" · "),loc:i.location||"",open:()=>openPanel(i)}:null}
+const tkClearQ=()=>{tkQ=""};
+const tkOf=id=>tkItems.filter(e=>e.list===id);
+function tkCount(id){const l=tkOf(id);return {total:l.length,done:l.filter(e=>e.st==="done").length,issue:l.filter(e=>e.st==="issue").length}}
+function tkDday(due){if(!due)return null;const d=new Date(due+"T00:00:00"),t=new Date();t.setHours(0,0,0,0);const n=Math.round((d-t)/864e5);return n}
+function tkBar(c){const b=el("div","tkbar");const g=el("i","g"),o=el("i","o");g.style.width=(c.total?c.done/c.total*100:0)+"%";o.style.width=(c.total?c.issue/c.total*100:0)+"%";b.append(g,o);return b}
+const tkWhen=t=>t?new Date(t).toLocaleString("ko-KR",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}):"";
+function tkSub(){if(tkSubbed||!db)return;tkSubbed=true;
+  db.collection("tasks").onSnapshot(s=>{tasks=s.docs.map(x=>Object.assign({_id:x.id},x.data()));tkRefresh()},()=>{});
+  db.collection("taskitems").onSnapshot(s=>{tkItems=s.docs.map(x=>Object.assign({_id:x.id},x.data()));tkRefresh()},()=>{});
+}
+function tkRefresh(){if(!$("tkOverlay").hidden){const a=document.activeElement;if(a&&a.classList&&a.classList.contains("tknote")&&$("tkOverlay").contains(a))tkPending=true;else renderTk()}if(!$("overlay").hidden&&editing&&editing.id)tkPanel("eq",editing.id);if(!$("micOverlay").hidden&&editMic&&editMic._id)tkPanel("mic",editMic._id)}
+function tkOpen(id){tkSub();tkCur=id||null;tkEditing=null;$("tkOverlay").hidden=false;document.documentElement.classList.add("noscroll");renderTk();$("tkOverlay").querySelector(".panel").scrollTop=0}
+function tkClose(){$("tkOverlay").hidden=true;tkBack=false;if($("overlay").hidden&&$("modelModal").hidden&&$("micOverlay").hidden)document.documentElement.classList.remove("noscroll")}
+$("tkBtn").onclick=()=>tkOpen(null);
+$("tkOverlay").addEventListener("click",e=>{if(e.target===$("tkOverlay"))tkClose()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("tkOverlay").hidden&&$("askModal").hidden){if(tkCur&&!tkEditing){tkCur=null;renderTk()}else if(tkEditing){tkEditing=null;renderTk()}else tkClose()}});
+
+function renderTk(){
+  const act=document.activeElement,actK=act&&act.dataset?act.dataset.tk:null;
+  tkRender();
+  if(actK){const n=$("tkBody").querySelector('[data-tk="'+actK+'"]');if(n){n.focus();if(n.setSelectionRange&&n.type!=="search")try{n.setSelectionRange(n.value.length,n.value.length)}catch(_){}}}
+}
+function tkRender(){
+  const P=$("tkBody");P.replaceChildren();const w=tkCanWrite();
+  if(tkEditing){P.append(tkForm(tkEditing==="new"?null:tasks.find(t=>t._id===tkEditing)));$("tkTitleH").textContent=tkEditing==="new"?"새 작업 목록":"작업 목록 수정";$("tkBack").hidden=false;return}
+  const t=tkCur&&tasks.find(x=>x._id===tkCur);
+  if(tkCur&&!t&&tkSubbed&&tasks.length)tkCur=null;
+  $("tkBack").hidden=!tkCur;
+  if(!tkCur){
+    $("tkTitleH").textContent="작업 목록";
+    const top=el("div","tktop");top.append(el("p","ntguest",w?"청소·점검·테스트할 장비를 담아 두고 현장에서 체크하세요.":"진행 상황은 누구나 볼 수 있고, 담기와 체크는 음향감독만 할 수 있습니다."));
+    if(w){const n=el("button","btn primary","+ 새 작업 목록");n.type="button";n.onclick=()=>{tkEditing="new";renderTk()};top.append(n)}
+    P.append(top);
+    if(!tasks.length){P.append(el("p","empty",tkSubbed?"아직 작업 목록이 없습니다.":"불러오는 중…"));return}
+    const list=tasks.slice().sort((a,b)=>{const ca=tkCount(a._id),cb=tkCount(b._id);const fa=ca.total&&ca.done+ca.issue===ca.total,fb=cb.total&&cb.done+cb.issue===cb.total;
+      return (fa-fb)||String(a.due||"9999").localeCompare(String(b.due||"9999"))||String(b.at||"").localeCompare(String(a.at||""))});
+    list.forEach(t=>{const c=tkCount(t._id),card=el("button","tkcard");card.type="button";card.onclick=()=>{tkCur=t._id;tkFilter="all";tkQ="";tkAddOpen=false;renderTk();$("tkOverlay").querySelector(".panel").scrollTop=0};
+      const h=el("div","tkch");h.append(el("span","tkkind k-"+(TK_KINDS.indexOf(t.kind)+1),t.kind||"기타"),el("b",null,t.name||"(이름 없음)"));
+      const dd=tkDday(t.due);if(dd!=null){const fin=c.total&&c.done+c.issue===c.total;h.append(el("span","tkdue"+(dd<0&&!fin?" late":""),fin?"완료":dd===0?"오늘까지":dd>0?"D-"+dd:(-dd)+"일 지남"))}
+      card.append(h,tkBar(c));
+      const m=el("div","tkcm");m.append(el("span",null,"완료 "+c.done+" · 문제 "+c.issue+" · 남음 "+(c.total-c.done-c.issue)+" / 전체 "+c.total),el("span",null,(t.round>1?t.round+"회차 · ":"")+(t.byName||"")));card.append(m);
+      P.append(card)});
+    return;
+  }
+  // 상세
+  $("tkTitleH").textContent=t.name||"작업 목록";
+  const c=tkCount(t._id);
+  const info=el("div","tkinfo");const h=el("div","tkch");h.append(el("span","tkkind k-"+(TK_KINDS.indexOf(t.kind)+1),t.kind||"기타"));
+  if(t.due){const dd=tkDday(t.due),fin=c.total&&c.done+c.issue===c.total;h.append(el("span","tkdue"+(dd<0&&!fin?" late":""),"마감 "+t.due+(fin?"":dd===0?" · 오늘":dd>0?" · D-"+dd:" · "+(-dd)+"일 지남")))}
+  h.append(el("span","tkby",(t.round>1?t.round+"회차 · ":"")+"만든 사람 "+(t.byName||"")));info.append(h);
+  if(t.memo){const mm=el("p","tkmemo");ntLinkify(mm,String(t.memo));info.append(mm)}
+  info.append(tkBar(c));
+  const pct=c.total?Math.round((c.done+c.issue)/c.total*100):0;
+  info.append(el("div","tkpct",c.total?(c.done+c.issue)+" / "+c.total+" 확인 ("+pct+"%) · 완료 "+c.done+" · 문제 있음 "+c.issue:"아직 담은 장비가 없습니다"));
+  if(w){const a=el("div","tkacts");
+    const e=el("button","btn","목록 정보 수정");e.type="button";e.onclick=()=>{tkEditing=t._id;renderTk()};a.append(e);
+    const r=el("button","btn","다시 시작");r.type="button";r.title="체크를 모두 풀고 다음 회차로";r.onclick=()=>tkRestart(t);a.append(r);
+    if(tkCanDel(t)){const d=el("button","btn danger","목록 삭제");d.type="button";d.onclick=()=>tkDelete(t);a.append(d)}
+    info.append(a)}
+  P.append(info);
+  if(w)P.append(tkAdder(t));
+  // 필터
+  const seg=el("div","viewseg tkseg");const left=c.total-c.done-c.issue;
+  [["all","전체 "+c.total],["left","남음 "+left],["issue","문제 "+c.issue],["done","완료 "+c.done]].forEach(([k,lab])=>{const b=el("button","vseg",lab);b.type="button";b.setAttribute("aria-pressed",String(tkFilter===k));b.onclick=()=>{tkFilter=k;renderTk()};seg.append(b)});
+  P.append(seg);
+  const rows=tkOf(t._id).map(e=>({e,r:tkRef(e)})).filter(({e})=>tkFilter==="all"||(tkFilter==="left"?!e.st:e.st===tkFilter));
+  rows.sort((a,b)=>String(a.r?a.r.loc:"~").localeCompare(String(b.r?b.r.loc:"~"),"ko")||String(a.r?a.r.lab:a.e.lab).localeCompare(String(b.r?b.r.lab:b.e.lab),"ko",{numeric:true}));
+  const L=el("div","tklist");let lastLoc=null;
+  if(!rows.length)L.append(el("p","empty",c.total?"해당하는 장비가 없습니다.":"위에서 장비나 핀마이크를 담아 주세요."));
+  rows.forEach(({e,r})=>{const loc=r?r.loc||"위치 없음":"삭제된 항목";
+    if(loc!==lastLoc){lastLoc=loc;L.append(el("div","tkloc",loc))}
+    L.append(tkRow(e,r,w))});
+  P.append(L);
+  if(Array.isArray(t.rounds)&&t.rounds.length){const d=document.createElement("details");d.className="tkrounds";d.append(el("summary",null,"지난 회차 기록 ("+t.rounds.length+")"));
+    t.rounds.slice().reverse().forEach(x=>{const b=el("div","tkround");b.append(el("b",null,x.n+"회차 · "+String(x.endedAt||"").slice(0,10)),el("span",null," 완료 "+x.done+" · 문제 "+x.issue+" / 전체 "+x.total));
+      (x.issues||[]).forEach(i=>b.append(el("div","tkri","문제: "+i.lab+(i.note?" — "+i.note:""))));d.append(b)});P.append(d)}
+}
+function tkRow(e,r,w){
+  const row=el("div","tkrow st-"+(e.st||"none"));
+  const ck=el("button","tkck",e.st==="done"?"✓":"");ck.type="button";ck.disabled=!w;ck.setAttribute("aria-label",e.st==="done"?"완료 취소":"완료로 체크");ck.title=e.st==="done"?"완료 취소":"완료";
+  ck.onclick=()=>tkSet(e,e.st==="done"?"":"done");
+  const mid=el("div","tkmid");
+  const lab=el("button","tklab",r?r.lab:(e.lab||"(삭제됨)"));lab.type="button";if(r){lab.onclick=()=>{$("tkOverlay").hidden=true;tkBack=true;r.open()}}else lab.disabled=true;
+  mid.append(lab);if(r&&r.sub)mid.append(el("div","tksub",r.sub));
+  if(e.st)mid.append(el("div","tkwho",(e.st==="done"?"완료":"문제 있음")+" · "+(e.whoName||"")+" · "+tkWhen(e.when)));
+  if(w&&(e.st==="issue"||e.note)){const n=document.createElement("input");n.className="tknote";n.placeholder="문제 내용 메모 (예: 왼쪽 채널 잡음)";n.value=e.note||"";n.maxLength=200;
+    n.onchange=()=>db.collection("taskitems").doc(e._id).update({note:n.value.trim()}).catch(err=>toast(errMsg(err)));n.onblur=()=>{if(tkPending){tkPending=false;setTimeout(renderTk,0)}};mid.append(n);if(e._focus){delete e._focus;setTimeout(()=>n.focus(),0)}}
+  else if(e.note)mid.append(el("div","tknotev",e.note));
+  const right=el("div","tkright");
+  const is=el("button","btn tkiss"+(e.st==="issue"?" on":""),"문제");is.type="button";is.disabled=!w;is.title=e.st==="issue"?"문제 표시 해제":"문제 있음으로 표시";
+  is.onclick=()=>{if(e.st!=="issue")e._focus=true;tkSet(e,e.st==="issue"?"":"issue")};right.append(is);
+  if(w){const x=el("button","tkx","✕");x.type="button";x.title="목록에서 빼기";x.setAttribute("aria-label","목록에서 빼기");x.onclick=async()=>{try{await db.collection("taskitems").doc(e._id).delete()}catch(err){toast(errMsg(err))}};right.append(x)}
+  row.append(ck,mid,right);return row;
+}
+async function tkSet(e,st){if(!tkCanWrite())return;
+  const upd={st,when:st?new Date().toISOString():null,who:st?myId:null,whoName:st?await tkMyName():""};
+  const f=e._focus;Object.assign(e,upd);if(f)e._focus=true;renderTk();
+  try{await db.collection("taskitems").doc(e._id).update(upd)}catch(err){toast(errMsg(err))}
+}
+async function tkAdd(list,arr){ // arr: [{t,ref,lab}]
+  if(!tkCanWrite())return 0;const have=new Set(tkOf(list).map(e=>e.t+":"+e.ref));let n=0;const at=new Date().toISOString();
+  for(const x of arr){if(have.has(x.t+":"+x.ref))continue;have.add(x.t+":"+x.ref);
+    try{await db.collection("taskitems").doc(tkId(list,x.t,x.ref)).set({list,t:x.t,ref:x.ref,lab:x.lab||"",st:"",note:"",who:null,whoName:"",when:null,at,by:myId});n++}catch(err){toast(errMsg(err));break}}
+  return n;
+}
+function tkAdder(t){
+  const box=document.createElement("details");box.className="tkadd";const sm=el("summary","tkaddh","+ 장비 · 핀마이크 담기");box.append(sm);
+  box.open=tkAddOpen||!tkOf(t._id).length;box.addEventListener("toggle",()=>{tkAddOpen=box.open});
+  const q=document.createElement("input");q.type="search";q.placeholder="관리번호, 모델, 마이크 번호로 찾기 (예: ST.RX.G3)";q.setAttribute("aria-label","담을 장비 찾기");q.dataset.tk="q";q.value=tkQ;
+  const res=el("div","tkres");box.append(q,res);
+  const inList=()=>new Set(tkOf(t._id).map(e=>e.t+":"+e.ref));
+  const draw=()=>{res.replaceChildren();const s=q.value.trim().toLowerCase();if(!s)return;const have=inList();
+    const eq=items.filter(i=>codeHit(i.assetId,s)||searchHit([i.assetId,i.type,i.manufacturer,i.model,i.location,i.category],s)).slice(0,30).map(i=>({t:"eq",ref:i.id,lab:i.assetId,sub:[i.type,i.model,i.location].filter(Boolean).join(" · ")}));
+    const mc=mics.filter(m=>searchHit([micTitle(m),m.code,m.model,m.kind,m.venue,m.storage],s)).slice(0,20).map(m=>({t:"mic",ref:m._id,lab:micTitle(m),sub:["핀마이크",m.kind,m.model].filter(Boolean).join(" · ")}));
+    const all=eq.concat(mc);if(!all.length){res.append(el("p","empty","찾는 장비가 없습니다."));return}
+    const rest=all.filter(x=>!have.has(x.t+":"+x.ref));
+    if(rest.length>1){const b=el("button","btn","찾은 "+rest.length+"개 모두 담기");b.type="button";b.onclick=async()=>{b.disabled=true;const n=await tkAdd(t._id,rest);toast(n+"개를 담았습니다");draw()};res.append(b)}
+    all.slice(0,12).forEach(x=>{const r=el("div","tkresr");const l=el("div","tkmid");l.append(el("b",null,x.lab),el("div","tksub",x.sub));
+      const on=have.has(x.t+":"+x.ref);const b=el("button","btn"+(on?"":" primary"),on?"담김":"담기");b.type="button";b.disabled=on;
+      b.onclick=async()=>{b.disabled=true;await tkAdd(t._id,[x]);b.textContent="담김";b.className="btn"};r.append(l,b);res.append(r)});
+    if(all.length>12)res.append(el("p","ntguest","… 외 "+(all.length-12)+"개 (검색어를 더 자세히 입력하세요)"));
+  };
+  q.addEventListener("input",()=>{tkQ=q.value;draw()});if(tkQ)draw();
+  // 지금 화면에 걸러 놓은 목록 통째로 담기
+  const quick=el("div","tkquick");
+  const ve=visible(),vm=micVisible();
+  const be=el("button","btn","장비 대장 화면의 "+ve.length+"대 담기");be.type="button";be.title="장비 대장에서 지금 검색·필터로 보이는 장비를 모두 담습니다";
+  be.onclick=async()=>{if(!ve.length)return;if(ve.length>40&&!(await askConfirm("장비 "+ve.length+"대를 모두 담을까요?","장비 대장 화면에서 지금 검색·필터로 보이는 장비입니다. 장소나 카테고리로 먼저 걸러 두면 필요한 장비만 담을 수 있습니다.",null,null,"모두 담기")))return;
+    be.disabled=true;const n=await tkAdd(t._id,ve.map(i=>({t:"eq",ref:i.id,lab:i.assetId})));toast(n+"대를 담았습니다");be.disabled=false};
+  const bm=el("button","btn","핀마이크 화면의 "+vm.length+"개 담기");bm.type="button";bm.title="핀마이크 대장에서 지금 검색·필터로 보이는 마이크를 모두 담습니다";
+  bm.onclick=async()=>{if(!vm.length)return;if(vm.length>40&&!(await askConfirm("핀마이크 "+vm.length+"개를 모두 담을까요?","핀마이크 대장 화면에서 지금 보이는 마이크입니다.",null,null,"모두 담기")))return;
+    bm.disabled=true;const n=await tkAdd(t._id,vm.map(m=>({t:"mic",ref:m._id,lab:micTitle(m)})));toast(n+"개를 담았습니다");bm.disabled=false};
+  be.disabled=!ve.length;bm.disabled=!vm.length;quick.append(be,bm);
+  box.append(quick,el("p","ntguest","장비 대장이나 핀마이크 화면에서 장소·종류로 먼저 걸러 두고 위 버튼을 누르면 한 번에 담깁니다. 장비 정보 창에서도 하나씩 담을 수 있습니다."));
+  return box;
+}
+function tkForm(t){
+  const f=el("div","ntform tkform");
+  const name=document.createElement("input");name.placeholder="목록 이름 (예: 11월 방송실 청소)";name.maxLength=80;name.value=t?t.name||"":"";
+  const kind=document.createElement("select");TK_KINDS.forEach(k=>kind.append(new Option(k,k)));kind.value=t?t.kind||"청소":"청소";
+  const due=document.createElement("input");due.type="date";due.value=t?t.due||"":"";
+  const memo=document.createElement("textarea");memo.placeholder="메모 (선택) — 작업 방법, 주의사항 등";memo.maxLength=2000;memo.value=t?t.memo||"":"";
+  const r1=el("div","tkfrow");const lk=el("label",null,"종류 ");lk.append(kind);const ld=el("label",null,"마감일 ");ld.append(due);r1.append(lk,ld);
+  const err=el("p","err","");err.hidden=true;
+  const acts=el("div","ntfacts");const cc=el("button","btn","취소");cc.type="button";cc.onclick=()=>{tkEditing=null;renderTk()};
+  const sv=el("button","btn primary",t?"저장":"만들기");sv.type="button";
+  sv.onclick=async()=>{const nm=name.value.trim();if(!nm){err.textContent="목록 이름을 입력하세요.";err.hidden=false;name.focus();return}
+    sv.disabled=true;
+    try{const d={name:nm,kind:kind.value,due:due.value||"",memo:memo.value.trim()};
+      if(t){await db.collection("tasks").doc(t._id).update(d);tkCur=t._id}
+      else{const ref=await db.collection("tasks").add(Object.assign(d,{by:myId,byName:await tkMyName(),at:new Date().toISOString(),round:1,rounds:[]}));tkCur=ref.id;tkFilter="all"}
+      tkEditing=null;renderTk();toast(t?"저장했습니다":"작업 목록을 만들었습니다")}
+    catch(e){sv.disabled=false;err.textContent=errMsg(e);err.hidden=false}};
+  acts.append(cc,sv);f.append(name,r1,memo,err,acts);setTimeout(()=>name.focus(),0);return f;
+}
+async function tkRestart(t){
+  const l=tkOf(t._id),c=tkCount(t._id);
+  const ok=await askConfirm("체크를 모두 풀고 다시 시작할까요?","지금 결과(완료 "+c.done+" · 문제 "+c.issue+" / 전체 "+c.total+")는 '"+(t.round||1)+"회차' 기록으로 남고, 담아 둔 장비는 그대로 둡니다.",null,null,"다시 시작",null,true);if(!ok)return;
+  const issues=l.filter(e=>e.st==="issue").slice(0,60).map(e=>{const r=tkRef(e);return {lab:r?r.lab:e.lab,note:e.note||""}});
+  const rounds=(Array.isArray(t.rounds)?t.rounds:[]).concat([{n:t.round||1,endedAt:new Date().toISOString(),total:c.total,done:c.done,issue:c.issue,issues}]).slice(-24);
+  try{await db.collection("tasks").doc(t._id).update({round:(t.round||1)+1,rounds});
+    for(const e of l){if(!e.st&&!e.note)continue;await db.collection("taskitems").doc(e._id).update({prev:{st:e.st,when:e.when,whoName:e.whoName||"",note:e.note||"",round:t.round||1},st:"",note:"",who:null,whoName:"",when:null})}
+    tkFilter="all";toast((t.round||1)+1+"회차를 시작했습니다")}
+  catch(err){toast(errMsg(err))}
+}
+async function tkDelete(t){
+  const c=tkCount(t._id);
+  const ok=await askConfirm("이 작업 목록을 삭제할까요?",(t.name||"")+" · 담긴 항목 "+c.total+"개와 지난 회차 기록이 함께 지워집니다.",null,null,"삭제");if(!ok)return;
+  try{for(const e of tkOf(t._id))await db.collection("taskitems").doc(e._id).delete();await db.collection("tasks").doc(t._id).delete();tkCur=null;renderTk();toast("작업 목록을 삭제했습니다")}
+  catch(err){toast(errMsg(err))}
+}
+$("tkBack").onclick=()=>{if(tkEditing){tkEditing=null}else tkCur=null;renderTk();$("tkOverlay").querySelector(".panel").scrollTop=0};
+$("tkClose").onclick=tkClose;
+// 장비·마이크 창 안의 '작업 목록' 칸
+function tkPanel(t,ref){
+  const box=$(t==="eq"?"tkE":"tkM");if(!box)return;box.replaceChildren();
+  if(!ref||!db){box.hidden=true;return}tkSub();
+  const mine=tkItems.filter(e=>e.t===t&&e.ref===ref),w=tkCanWrite();
+  if(!mine.length&&!w){box.hidden=true;return}
+  box.hidden=false;box.append(el("div","sect","작업 목록"));
+  mine.forEach(e=>{const tk=tasks.find(x=>x._id===e.list);if(!tk)return;
+    const r=el("div","tkpl");const a=el("button","tklab",tk.name||"(이름 없음)");a.type="button";a.onclick=()=>tkOpen(tk._id);
+    r.append(el("span","tkkind k-"+(TK_KINDS.indexOf(tk.kind)+1),tk.kind||"기타"),a);
+    const s=e.st==="done"?"완료 · "+(e.whoName||"")+" · "+tkWhen(e.when):e.st==="issue"?"문제 있음 · "+(e.whoName||"")+" · "+tkWhen(e.when)+(e.note?" — "+e.note:""):"아직 안 함";
+    r.append(el("span","tkpls st-"+(e.st||"none"),s));
+    if(!e.st&&e.prev&&e.prev.st)r.append(el("span","tkplp","지난 "+(e.prev.round||"")+"회차: "+(e.prev.st==="done"?"완료":"문제 있음")+" "+String(e.prev.when||"").slice(0,10)));
+    box.append(r)});
+  if(w){const opts=tasks.filter(x=>!mine.some(e=>e.list===x._id)).sort((a,b)=>String(b.at||"").localeCompare(String(a.at||"")));
+    const row=el("div","tkpadd");const sel=document.createElement("select");sel.setAttribute("aria-label","담을 작업 목록");
+    sel.append(new Option(opts.length?"담을 작업 목록 고르기…":"담을 수 있는 작업 목록이 없습니다",""));opts.forEach(x=>sel.append(new Option("["+(x.kind||"기타")+"] "+(x.name||""),x._id)));
+    const b=el("button","btn","작업 목록에 담기");b.type="button";
+    b.onclick=async()=>{if(!sel.value){if(!opts.length)tkOpen(null);return}b.disabled=true;
+      const lab=t==="eq"?((items.find(i=>i.id===ref)||{}).assetId||""):micTitle(mics.find(m=>m._id===ref)||{});
+      const n=await tkAdd(sel.value,[{t,ref,lab}]);toast(n?"작업 목록에 담았습니다":"이미 담겨 있습니다");b.disabled=false};
+    const nb=el("button","btn","새 목록");nb.type="button";nb.title="새 작업 목록 만들기";nb.onclick=()=>{tkOpen(null);tkEditing="new";renderTk()};
+    row.append(sel,b,nb);box.append(row)}
+}
 $("matBtn").onclick=openMats;
 $("coverBox").onclick=()=>{const k=curKey();if(!k)return;const im=imagesFor(k);if(im.length)openLb(im,0);else openMats()};
 $("matClose").onclick=closeMats;
@@ -2709,7 +3093,8 @@ $("m-storage-sel").addEventListener("change",e=>{const inp=$("m-storage");if(e.t
 function micFormSnap(){return JSON.stringify([MFIELDS.map(k=>$("m-"+k).value),cleanRepairs(micRepairs)])}
 function openMic(m){
   editMic=m||null;
-  document.querySelectorAll("#micForm [data-ph]").forEach(e=>e.placeholder=m?"":e.dataset.ph); // 기존 마이크는 빈 칸 그대로$("micFormTitle").textContent=m?micTitle(m):"마이크 추가";
+  document.querySelectorAll("#micForm [data-ph]").forEach(e=>e.placeholder=m?"":e.dataset.ph); // 기존 마이크는 빈 칸 그대로
+  $("micFormTitle").textContent=m?micTitle(m):"마이크 추가";
   const base=m||{venue:MF.venue,kind:MF.kind||"PIN",status:"정상"};
   const dl=(id,vals)=>$(id).replaceChildren(...vals.map(v=>{const o=document.createElement("option");o.value=v;return o}));
   dl("dl-mvenue",uniq(mics.map(x=>x.venue)));dl("dl-mkind",uniq(["PACK","PIN","HAND"].concat(mics.map(x=>x.kind))));dl("dl-mmodel",uniq(mics.map(x=>x.model)));
@@ -2719,7 +3104,7 @@ function openMic(m){
   $("m-err").hidden=true;$("micConfirm").hidden=true;$("micDel").hidden=!m||!canWrite;$("micSave").hidden=!canWrite;
   [...$("micForm").elements].forEach(e=>{if(e.id&&e.id.startsWith("m-"))e.disabled=!canWrite});$("mRepAdd").hidden=!canWrite;
   const meta=$("m-meta");meta.hidden=!(m&&m.updatedAt);if(m&&m.updatedAt)meta.textContent="마지막 수정: "+new Date(m.updatedAt).toLocaleString("ko-KR");
-  micSnap=micFormSnap();
+  micSnap=micFormSnap();tkPanel("mic",m&&m._id);
   $("micOverlay").hidden=false;$("micForm").scrollTop=0;
   setTimeout(()=>{$(m?"m-status":"m-venue").focus({preventScroll:true});$("micForm").scrollTop=0},0);
 }
@@ -3061,6 +3446,7 @@ render();
   if(user){try{const w=await user.can("data.write");if(w===false){canWrite=false;applyWriteState()}}catch(_){}}
   if(myId&&canWrite)db.collection("members").doc(myId).set({lastSeen:new Date().toISOString(),editor:!!amEditor}).catch(()=>{});
   const timer=setTimeout(()=>notice("장비 대장 서버에 아직 연결되지 않았습니다. 표시된 내용이 최신이 아닐 수 있습니다."),10000);
+  ntSub();tkSub();
   db.collection("mics").onSnapshot(s=>{mics=s.docs.map(x=>Object.assign({_id:x.id},x.data()));micLoaded=true;renderMics()},()=>{micLoaded=true;renderMics()});
   db.collection("freqs").onSnapshot(s=>{freqs=s.docs.map(x=>Object.assign({_id:x.id},x.data()));freqLoaded=true;renderFreqs();if(!$("freqOverlay").hidden)freqLive()},()=>{freqLoaded=true;renderFreqs()});
   db.doc("settings/names").onSnapshot(s=>{if(!s.exists)return;const d=s.data();if(d.map&&typeof d.map==="object")nameOverride=Object.assign({},nameOverride,d.map);if(d.byName&&typeof d.byName==="object")nameByName=Object.assign({},nameByName,d.byName);renderLastMod()},()=>{});
