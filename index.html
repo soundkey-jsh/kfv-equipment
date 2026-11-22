@@ -2747,12 +2747,14 @@ async function moveMat(m,item){
   }catch(err){toast(errMsg(err))}
 }
 async function delMat(m){
-  const ok=await askConfirm("이 파일을 삭제할까요?",(m.name||"")+(m.repId?" · 정비 기록 첨부파일입니다.":m.itemId?" · 이 장비의 사진입니다.":" · 같은 모델의 모든 장비에서 사라집니다."),null,null,"삭제");
+  // 같은 파일을 다른 모델·장비에서도 쓰고 있으면(여러 곳에 함께 넣은 자료) 이 칸에서만 빼고 파일은 남겨 둠
+  const shared=mats.filter(x=>x._id!==m._id&&(x.assetId===m.assetId||(m.origAssetId&&x.origAssetId===m.origAssetId))).length;
+  const ok=await askConfirm("이 파일을 삭제할까요?",(m.name||"")+(shared?" · 다른 "+shared+"곳에도 들어 있는 자료라, 여기서만 빠지고 다른 곳에서는 그대로 보입니다.":m.repId?" · 정비 기록 첨부파일입니다.":m.itemId?" · 이 장비의 사진입니다.":" · 같은 모델의 모든 장비에서 사라집니다."),null,null,"삭제");
   if(!ok)return;
   try{
-    let assetLeft=false;
-    if(assetsNs&&m.origAssetId&&m.origAssetId!==m.assetId){try{await assetsNs.delete(m.origAssetId)}catch(_){}}
-    if(assetsNs){try{await assetsNs.delete(m.assetId)}catch(err){if(err&&(err.code==="not_uploader"||err.code==="not_granted"))assetLeft=true;else if(!(err&&err.code==="invalid_request"))throw err}}else assetLeft=true;
+    let assetLeft=!!shared;
+    if(!shared&&assetsNs&&m.origAssetId&&m.origAssetId!==m.assetId){try{await assetsNs.delete(m.origAssetId)}catch(_){}}
+    if(!shared&&assetsNs){try{await assetsNs.delete(m.assetId)}catch(err){if(err&&(err.code==="not_uploader"||err.code==="not_granted"))assetLeft=true;else if(!(err&&err.code==="invalid_request"))throw err}}else assetLeft=true;
     await db.collection("materials").doc(m._id).delete();
     logHistory("delete",m._id,{assetId:m.model||"",type:"장비 관련 자료 · "+(m.name||"")},[]);
     if(!$("lb").hidden){lbList=lbList.filter(x=>x._id!==m._id);if(lbIdx>=lbList.length)lbIdx=lbList.length-1;lbList.length?showLb():closeLb()}
