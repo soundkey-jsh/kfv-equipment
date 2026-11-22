@@ -299,6 +299,19 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .ntbody a{color:var(--accent)}
 .ntmeta{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
 .ntacts{display:flex;gap:6px;flex-wrap:wrap}.ntacts .btn{padding:4px 10px;font-size:12.5px}
+.ntfbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.ntfbar .btn{padding:5px 10px;font-size:12.5px}
+.ntform.dropover{outline:2px dashed var(--accent);outline-offset:2px}
+.ntflist{display:flex;flex-direction:column;gap:4px}
+.ntfrow,.ntdoc{display:flex;align-items:center;gap:8px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);font-size:13px}
+.ntfrow img{width:34px;height:34px;object-fit:cover;border-radius:4px;flex:none}
+.ntfext{flex:none;min-width:34px;text-align:center;font-size:10.5px;font-weight:700;padding:3px 4px;border-radius:4px;background:var(--accent-soft);color:var(--accent)}
+.ntfname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ntfsize{flex:none;font-size:12px;color:var(--muted)}
+.ntdoc .btn{padding:3px 10px;font-size:12px}
+.ntfiles{display:flex;flex-direction:column;gap:6px}
+.ntgal{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}
+.ntthumb{aspect-ratio:1;border:1px solid var(--line);border-radius:6px;overflow:hidden;padding:0;background:var(--surface);cursor:pointer}
+.ntthumb img{width:100%;height:100%;object-fit:cover;display:block}
 .hitem{border-bottom:1px solid var(--line);padding:10px 0;display:flex;flex-direction:column;gap:4px}
 .hitem:last-child{border-bottom:0}
 .hmeta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
@@ -856,6 +869,9 @@ html{-webkit-text-size-adjust:100%}
     <div class="ntform" id="ntForm" hidden>
       <input id="ntTitle" type="text" maxlength="120" placeholder="제목" aria-label="공지 제목">
       <textarea id="ntBody" maxlength="5000" placeholder="내용 (링크를 넣으면 눌러서 열 수 있습니다)" aria-label="공지 내용"></textarea>
+      <div class="ntfbar"><label class="btn" for="ntFile">+ 파일 첨부</label><input type="file" id="ntFile" multiple hidden accept="image/png,image/jpeg,image/gif,image/webp,.pdf,.xls,.xlsx,.ppt,.pptx,.doc,.docx"><span class="hint">사진·PDF·엑셀·워드·PPT · 끌어다 놓아도 됩니다</span><span class="hint" id="ntFileCount"></span></div>
+      <div class="ntflist" id="ntFileList"></div>
+      <div class="upstat" id="ntUpStat" hidden></div>
       <p class="err" id="ntErr" hidden></p>
       <div class="ntfacts"><button type="button" class="btn" id="ntCancel" hidden>취소</button><button type="button" class="btn primary" id="ntSave">등록</button></div>
     </div>
@@ -2124,6 +2140,7 @@ function showLb(){
   $("lbName").textContent=(m.name||"")+"  ("+(lbIdx+1)+"/"+lbList.length+")";
   $("lbPrev").hidden=$("lbNext").hidden=lbList.length<2;
   const a=$("lbActs");a.replaceChildren();
+  if(m._nt){const s=el("button","btn","다운로드");s.type="button";s.onclick=()=>saveMat(m,s);a.append(s);const cl=el("button","btn","닫기");cl.type="button";cl.onclick=closeLb;a.append(cl);return}
   if(canWrite&&db&&!m.itemId&&!m.repId&&!m.cover&&lbIdx!==0){const c=el("button","btn","대표 사진으로");c.type="button";c.onclick=()=>setCover(m);a.append(c)}
   if(canWrite&&db&&m.itemId&&!m.repId){const c=el("button","btn","모델 공통으로 옮기기");c.type="button";c.title="같은 모델 장비 모두에 보이게 합니다";c.onclick=()=>moveMat(m,null);a.append(c)}
   else if(canWrite&&db&&!m.itemId&&!m.repId&&editing&&editing.id&&!$("overlay").hidden&&keyOf(editing.manufacturer,editing.model)===m.key){const c=el("button","btn","이 장비 사진으로 옮기기");c.type="button";c.title=(editing.assetId||"이 장비")+"에만 보이게 합니다";c.onclick=()=>moveMat(m,editing);a.append(c)}
@@ -2284,7 +2301,9 @@ $("peOrig").onclick=async()=>{
   }catch(err){PE.busy=false;toast(assetErr(err))}
 };
 /* ---------- 공지사항: 누구나 읽기 · 편집자 글쓰기 · 글쓴이 자기 글 수정/삭제 · 소유자 전체 삭제 ---------- */
-let notices=[],ntSubbed=false,ntEditId=null,ntMyName="";
+let notices=[],ntSubbed=false,ntEditId=null,ntMyName="",ntFiles=[],ntFresh=[],ntUpBusy=0;
+const NT_MAXF=10;
+const ntSize=b=>b>=1048576?(b/1048576).toFixed(1)+"MB":Math.max(1,Math.round(b/1024))+"KB";
 const ntCanWrite=()=>!!db&&canWrite&&!!myId;
 const ntMine=n=>!!myId&&n.by===myId;
 const ntWhen=t=>t?new Date(t).toLocaleString("ko-KR",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}):"";
@@ -2310,19 +2329,20 @@ function renderNotices(){
     if(n.at&&n.at>seen&&!ntMine(n))top.append(el("span","ntnew","새 글"));
     top.append(el("h3",null,n.title||"(제목 없음)"));d.append(top);
     if(n.body){const b=el("div","ntbody");ntLinkify(b,String(n.body));d.append(b)}
+    if(Array.isArray(n.files)&&n.files.length)d.append(ntFilesView(n.files));
     const meta=el("div","ntmeta");meta.append(el("span",null,(n.byName||"음향감독")+" · "+ntWhen(n.at)+(n.editedAt?" (수정됨)":"")));
     const acts=el("span","ntacts");
     if(amOwner){const p=el("button","btn",n.pin?"고정 해제":"맨 위 고정");p.type="button";p.onclick=async()=>{p.disabled=true;try{await db.collection("notices").doc(n._id).update({pin:!n.pin})}catch(err){p.disabled=false;toast(errMsg(err))}};acts.append(p)}
     if(ntMine(n)&&w){const e=el("button","btn","수정");e.type="button";e.onclick=()=>ntEdit(n);acts.append(e)}
     if((ntMine(n)&&w)||amOwner){const x=el("button","btn danger","삭제");x.type="button";x.onclick=async()=>{
       const ok=await askConfirm("이 공지를 삭제할까요?",n.title||"",null,null,"삭제");if(!ok)return;
-      try{await db.collection("notices").doc(n._id).delete();if(ntEditId===n._id)ntReset();toast("공지를 삭제했습니다")}catch(err){toast(errMsg(err))}};acts.append(x)}
+      try{await db.collection("notices").doc(n._id).delete();ntDropAssets(n.files);if(ntEditId===n._id)ntReset();toast("공지를 삭제했습니다")}catch(err){toast(errMsg(err))}};acts.append(x)}
     if(acts.childNodes.length)meta.append(acts);
     d.append(meta);L.append(d);
   });
 }
-function ntReset(){ntEditId=null;$("ntTitle").value="";$("ntBody").value="";$("ntSave").textContent="등록";$("ntCancel").hidden=true;$("ntErr").hidden=true}
-function ntEdit(n){ntEditId=n._id;$("ntTitle").value=n.title||"";$("ntBody").value=n.body||"";$("ntSave").textContent="수정 저장";$("ntCancel").hidden=false;$("ntErr").hidden=true;
+function ntReset(keep){if(!keep)ntDropAssets(ntFresh);ntFresh=[];ntFiles=[];ntDrawFiles();ntEditId=null;$("ntTitle").value="";$("ntBody").value="";$("ntSave").textContent="등록";$("ntCancel").hidden=true;$("ntErr").hidden=true}
+function ntEdit(n){ntDropAssets(ntFresh);ntFresh=[];ntFiles=(n.files||[]).slice();ntDrawFiles();ntEditId=n._id;$("ntTitle").value=n.title||"";$("ntBody").value=n.body||"";$("ntSave").textContent="수정 저장";$("ntCancel").hidden=false;$("ntErr").hidden=true;
   $("ntOverlay").querySelector(".panel").scrollTo({top:0,behavior:"smooth"});setTimeout(()=>$("ntTitle").focus(),0)}
 function ntSub(){if(ntSubbed||!db)return;
   db.collection("notices").onSnapshot(s=>{notices=s.docs.map(x=>Object.assign({_id:x.id},x.data()));ntSubbed=true;ntDot();if(!$("ntOverlay").hidden){renderNotices();ntMarkSeen()}},()=>{ntSubbed=true;if(!$("ntOverlay").hidden)renderNotices()});
@@ -2338,13 +2358,14 @@ $("ntSave").onclick=async()=>{
   if(!ntCanWrite())return;
   const title=$("ntTitle").value.trim(),body=$("ntBody").value.replace(/\s+$/,""),err=$("ntErr");
   if(!title){err.textContent="제목을 입력하세요.";err.hidden=false;$("ntTitle").focus();return}
-  const btn=$("ntSave");btn.disabled=true;err.hidden=true;
+  if(ntUpBusy){err.textContent="첨부파일을 올리는 중입니다. 잠시만 기다려 주세요.";err.hidden=false;return}
+  const btn=$("ntSave");btn.disabled=true;err.hidden=true;const files=ntFiles.slice(),old=ntEditId?((notices.find(x=>x._id===ntEditId)||{}).files||[]):[];
   try{
-    if(ntEditId){await db.collection("notices").doc(ntEditId).update({title,body,editedAt:new Date().toISOString()});toast("공지를 수정했습니다")}
+    if(ntEditId){await db.collection("notices").doc(ntEditId).update({title,body,files,editedAt:new Date().toISOString()});ntDropAssets(old.filter(f=>!files.some(x=>x.assetId===f.assetId)));toast("공지를 수정했습니다")}
     else{
       if(!ntMyName&&user){try{const p=await user.profiles([myId]);ntMyName=(p&&p[myId]&&p[myId].name)||""}catch(_){}}
-      await db.collection("notices").add({title,body,by:myId,byName:ntMyName||"음향감독",at:new Date().toISOString(),pin:false});toast("공지를 올렸습니다")}
-    ntReset();
+      await db.collection("notices").add({title,body,files,by:myId,byName:ntMyName||"음향감독",at:new Date().toISOString(),pin:false});toast("공지를 올렸습니다")}
+    ntReset(true);
   }catch(e){err.textContent=errMsg(e);err.hidden=false}
   finally{btn.disabled=false}
 };
@@ -2352,9 +2373,50 @@ $("ntDelAll").onclick=async()=>{
   if(!amOwner||!notices.length)return;
   const ok=await askConfirm("공지 "+notices.length+"개를 모두 삭제할까요?","삭제한 공지는 되돌릴 수 없습니다.",null,null,"전체 삭제");if(!ok)return;
   const btn=$("ntDelAll");btn.disabled=true;let fail=0;
-  for(const n of notices.slice()){try{await db.collection("notices").doc(n._id).delete()}catch(_){fail++}}
+  for(const n of notices.slice()){try{await db.collection("notices").doc(n._id).delete();ntDropAssets(n.files)}catch(_){fail++}}
   btn.disabled=false;ntReset();toast(fail?fail+"개는 삭제하지 못했습니다":"공지를 모두 삭제했습니다");
 };
+
+/* 공지 첨부파일 */
+function ntDropAssets(list){if(!assetsNs||!Array.isArray(list))return;list.forEach(f=>{if(f&&f.assetId)assetsNs.delete(f.assetId).catch(()=>{})})}
+async function ntUploadOne(file){
+  const e=extOf(file.name);if(e==="heic"||e==="heif")throw {code:"heic"};
+  let kind,blob,type,encoded=false,mime;
+  if(IMG_TYPES[e]){kind="image";blob=await shrinkImage(file);type=blob===file?IMG_TYPES[e]:(blob.type||"image/jpeg");mime=type}
+  else if(e==="pdf"){kind="doc";blob=file;type=mime="application/pdf"}
+  else if(DOC_TYPES[e]){kind="doc";mime=DOC_TYPES[e];if(file.size>14*1048576)throw {code:"too_large"};blob=new Blob([toB64(await file.arrayBuffer())],{type:"text/plain"});type="text/plain";encoded=true}
+  else throw {code:"unsupported_type"};
+  const r=await assetsNs.upload(blob,{type});
+  return {assetId:r.id,name:file.name,ext:e,kind,mime,size:file.size,encoded};
+}
+async function ntAddFiles(files){
+  if(!ntCanWrite()||!assetsNs||!files.length)return;const st=$("ntUpStat"),fails=[];
+  const room=NT_MAXF-ntFiles.length;if(room<=0){toast("첨부는 "+NT_MAXF+"개까지 넣을 수 있습니다");return}
+  if(files.length>room){fails.push((files.length-room)+"개는 개수 제한("+NT_MAXF+"개)으로 빠졌습니다");files=files.slice(0,room)}
+  ntUpBusy++;st.hidden=false;st.className="upstat";
+  for(let i=0;i<files.length;i++){st.textContent="올리는 중… ("+(i+1)+"/"+files.length+") "+files[i].name;
+    try{const f=await ntUploadOne(files[i]);ntFiles.push(f);ntFresh.push(f);ntDrawFiles()}
+    catch(err){fails.push(files[i].name+": "+(err&&err.code==="heic"?"아이폰 HEIC 사진은 올릴 수 없습니다.":assetErr(err)))}}
+  ntUpBusy--;
+  if(fails.length){st.className="upstat bad";st.textContent=fails.join(" / ")}else st.hidden=true;
+}
+function ntDrawFiles(){const box=$("ntFileList");box.replaceChildren();$("ntFileCount").textContent=ntFiles.length?ntFiles.length+"/"+NT_MAXF:"";
+  ntFiles.forEach((f,i)=>{const r=el("div","ntfrow");
+    if(f.kind==="image"){const im=document.createElement("img");im.src=blobUrl(f.assetId);im.alt="";r.append(im)}else r.append(el("span","ntfext",(f.ext||"파일").toUpperCase()));
+    r.append(el("span","ntfname",f.name),el("span","ntfsize",ntSize(f.size||0)));
+    const x=el("button","tkx","✕");x.type="button";x.title="첨부에서 빼기";x.setAttribute("aria-label",f.name+" 빼기");
+    x.onclick=()=>{ntFiles.splice(i,1);const k=ntFresh.findIndex(z=>z.assetId===f.assetId);if(k>=0){ntDropAssets([f]);ntFresh.splice(k,1)}ntDrawFiles()};r.append(x);box.append(r)})}
+function ntFilesView(files){
+  const w=el("div","ntfiles");const imgs=files.filter(f=>f.kind==="image").map(f=>Object.assign({_nt:true},f));
+  if(imgs.length){const g=el("div","ntgal");imgs.forEach((f,i)=>{const b=el("button","ntthumb");b.type="button";b.title=f.name;const im=document.createElement("img");im.src=blobUrl(f.assetId);im.alt=f.name;im.loading="lazy";b.append(im);b.onclick=()=>openLb(imgs,i);g.append(b)});w.append(g)}
+  files.filter(f=>f.kind!=="image").forEach(f=>{const r=el("div","ntdoc");r.append(el("span","ntfext",(f.ext||"파일").toUpperCase()),el("span","ntfname",f.name),el("span","ntfsize",ntSize(f.size||0)));
+    const b=el("button","btn","받기");b.type="button";b.onclick=()=>saveMat(f,b);r.append(b);
+    if(f.ext==="pdf"){const o=el("a","btn","열기");o.href=blobUrl(f.assetId);o.target="_blank";o.rel="noopener";r.insertBefore(o,b)}
+    w.append(r)});
+  return w;
+}
+$("ntFile").addEventListener("change",e=>{const f=[...e.target.files];e.target.value="";ntAddFiles(f)});
+dropZone($("ntForm"),f=>ntAddFiles(f),()=>ntCanWrite());
 /* ---------- 작업 목록: 청소·점검·테스트할 장비/핀마이크를 담고 체크 ----------
    tasks/<id>     : {name, kind, due, memo, by, byName, at, round, rounds:[…]}
    taskitems/<id> : {list, t:"eq"|"mic", ref, lab, st:""|"done"|"issue", note, who, whoName, when, at, prev}
