@@ -308,6 +308,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .ntfname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ntfsize{flex:none;font-size:12px;color:var(--muted)}
 .ntdoc .btn{padding:3px 10px;font-size:12px}
+.nodl{font-size:12px;color:var(--muted);white-space:nowrap}
 .ntfiles{display:flex;flex-direction:column;gap:6px}
 .ntgal{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}
 .ntthumb{aspect-ratio:1;border:1px solid var(--line);border-radius:6px;overflow:hidden;padding:0;background:var(--surface);cursor:pointer}
@@ -1753,6 +1754,9 @@ function dropZone(node,onFiles,canDrop){
 const repAtts=id=>id?mats.filter(m=>m.repId===id).sort((a,b)=>String(a.at).localeCompare(String(b.at))):[];
 const ownerEq=()=>editing&&editing.id?{itemId:editing.id,assetIdOf:editing.assetId||"",key:keyOf(editing.manufacturer,editing.model)||"",manufacturer:editing.manufacturer||"",model:editing.model||""}:null;
 const ownerMic=()=>editMic&&editMic._id?{micId:editMic._id,assetIdOf:micTitle(editMic),key:"",manufacturer:"",model:editMic.model||""}:null;
+// 첨부파일 열기·다운로드는 로그인한 사람만 (사진 보기는 누구나)
+const canGetFile=()=>!!myId;
+const noDl=()=>el("span","nodl","로그인하면 받을 수 있습니다");
 function attRow(m,meta){
   const r=el("div","doc");const e=(m.ext||extOf(m.name)||"").toLowerCase();
   const cls=e==="pdf"?"ft-pdf":e.startsWith("xls")?"ft-xls":e.startsWith("ppt")?"ft-ppt":m.kind==="image"?"ft-img":"ft-doc";
@@ -1761,8 +1765,8 @@ function attRow(m,meta){
   info.append(el("div","dmeta",[meta,fmtSize(m.size||0),m.at?new Date(m.at).toLocaleDateString("ko-KR"):""].filter(Boolean).join(" · ")));r.append(info);
   const a=el("div","dacts");
   if(!m.encoded){if(m.kind==="image"){const o=el("button","btn","보기");o.type="button";o.onclick=()=>openLb([m],0);a.append(o)}
-    else{const o=document.createElement("a");o.className="btn";o.href=blobUrl(m.assetId);o.target="_blank";o.rel="noopener";o.textContent="열기";a.append(o)}}
-  if(dlNs){const sv=el("button","btn","다운로드");sv.type="button";sv.onclick=()=>saveMat(m,sv);a.append(sv)}
+    else if(canGetFile()){const o=document.createElement("a");o.className="btn";o.href=blobUrl(m.assetId);o.target="_blank";o.rel="noopener";o.textContent="열기";a.append(o)}}
+  if(dlNs&&canGetFile()){const sv=el("button","btn","다운로드");sv.type="button";sv.onclick=()=>saveMat(m,sv);a.append(sv)}else if(m.kind!=="image")a.append(noDl())
   if(canDelMat(m)){const x=el("button","btn danger","삭제");x.type="button";x.onclick=()=>delMat(m);a.append(x)}
   r.append(a);return r;
 }
@@ -2119,8 +2123,8 @@ function renderMats(){
     const meta=el("div","dmeta",[fmtSize(m.size||0),m.at?new Date(m.at).toLocaleDateString("ko-KR"):""].filter(Boolean).join(" · "));
     const who=el("span");meta.append(who);metaWho.push({h:m,who});info.append(meta);r.append(info);
     const a=el("div","dacts");
-    if(!m.encoded){const o=document.createElement("a");o.className="btn";o.href=blobUrl(m.assetId);o.target="_blank";o.rel="noopener";o.textContent="열기";a.append(o)}
-    if(dlNs){const s=el("button","btn","다운로드");s.type="button";s.onclick=()=>saveMat(m,s);a.append(s)}
+    if(canGetFile()){if(!m.encoded){const o=document.createElement("a");o.className="btn";o.href=blobUrl(m.assetId);o.target="_blank";o.rel="noopener";o.textContent="열기";a.append(o)}
+    if(dlNs){const s=el("button","btn","다운로드");s.type="button";s.onclick=()=>saveMat(m,s);a.append(s)}}else a.append(noDl());
     if(canDelMat(m)){const x=el("button","btn danger","삭제");x.type="button";x.onclick=()=>delMat(m);a.append(x)}
     r.append(a);d.append(r);
   });
@@ -2140,12 +2144,12 @@ function showLb(){
   $("lbName").textContent=(m.name||"")+"  ("+(lbIdx+1)+"/"+lbList.length+")";
   $("lbPrev").hidden=$("lbNext").hidden=lbList.length<2;
   const a=$("lbActs");a.replaceChildren();
-  if(m._nt){const s=el("button","btn","다운로드");s.type="button";s.onclick=()=>saveMat(m,s);a.append(s);const cl=el("button","btn","닫기");cl.type="button";cl.onclick=closeLb;a.append(cl);return}
+  if(m._nt){if(canGetFile()){const s=el("button","btn","다운로드");s.type="button";s.onclick=()=>saveMat(m,s);a.append(s)}const cl=el("button","btn","닫기");cl.type="button";cl.onclick=closeLb;a.append(cl);return}
   if(canWrite&&db&&!m.itemId&&!m.repId&&!m.cover&&lbIdx!==0){const c=el("button","btn","대표 사진으로");c.type="button";c.onclick=()=>setCover(m);a.append(c)}
   if(canWrite&&db&&m.itemId&&!m.repId){const c=el("button","btn","모델 공통으로 옮기기");c.type="button";c.title="같은 모델 장비 모두에 보이게 합니다";c.onclick=()=>moveMat(m,null);a.append(c)}
   else if(canWrite&&db&&!m.itemId&&!m.repId&&editing&&editing.id&&!$("overlay").hidden&&keyOf(editing.manufacturer,editing.model)===m.key){const c=el("button","btn","이 장비 사진으로 옮기기");c.type="button";c.title=(editing.assetId||"이 장비")+"에만 보이게 합니다";c.onclick=()=>moveMat(m,editing);a.append(c)}
   if(canWrite&&db&&assetsNs&&m.kind==="image"&&(m.ext||"")!=="gif"){const c=el("button","btn","편집");c.type="button";c.title="자르기 · 회전 · 수평 맞추기 · 기울기";c.onclick=()=>openPE(m);a.append(c)}
-  if(dlNs){const s=el("button","btn","다운로드");s.type="button";s.onclick=()=>saveMat(m,s);a.append(s)}
+  if(dlNs&&canGetFile()){const s=el("button","btn","다운로드");s.type="button";s.onclick=()=>saveMat(m,s);a.append(s)}
   if(canDelMat(m)){const x=el("button","btn danger","삭제");x.type="button";x.onclick=()=>delMat(m);a.append(x)}
   const cl=el("button","btn","닫기");cl.type="button";cl.onclick=closeLb;a.append(cl);
 }
@@ -2410,6 +2414,7 @@ function ntFilesView(files){
   const w=el("div","ntfiles");const imgs=files.filter(f=>f.kind==="image").map(f=>Object.assign({_nt:true},f));
   if(imgs.length){const g=el("div","ntgal");imgs.forEach((f,i)=>{const b=el("button","ntthumb");b.type="button";b.title=f.name;const im=document.createElement("img");im.src=blobUrl(f.assetId);im.alt=f.name;im.loading="lazy";b.append(im);b.onclick=()=>openLb(imgs,i);g.append(b)});w.append(g)}
   files.filter(f=>f.kind!=="image").forEach(f=>{const r=el("div","ntdoc");r.append(el("span","ntfext",(f.ext||"파일").toUpperCase()),el("span","ntfname",f.name),el("span","ntfsize",ntSize(f.size||0)));
+    if(!canGetFile()){r.append(noDl());w.append(r);return}
     const b=el("button","btn","받기");b.type="button";b.onclick=()=>saveMat(f,b);r.append(b);
     if(f.ext==="pdf"){const o=el("a","btn","열기");o.href=blobUrl(f.assetId);o.target="_blank";o.rel="noopener";r.insertBefore(o,b)}
     w.append(r)});
@@ -2729,7 +2734,7 @@ document.addEventListener("paste",e=>{
   uploadFiles(files);
 });
 async function saveMat(m,btn){
-  if(!dlNs)return;btn.disabled=true;
+  if(!dlNs||!canGetFile())return;btn.disabled=true;
   try{
     const res=await fetch(blobUrl(m.assetId));if(!res.ok)throw new Error("fetch");
     let data;
