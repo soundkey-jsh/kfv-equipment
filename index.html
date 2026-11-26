@@ -1666,8 +1666,10 @@ async function requestClose(){
 $("addBtn").onclick=()=>guardAdd($("addBtn"),"장비",()=>openPanel(null));
 /* 같은 장비 추가하기: 모델 정보만 복사해 새 장비 입력 창을 열고, 구입연도·상태·라벨·용도·위치는 직접 고르게 함 */
 const DUP_NEED=[["f-year","구입연도"],["f-usage","상태"],["f-label","라벨"],["f-assign","용도"],["f-location","위치"]];
-function dupMissing(){return DUP_NEED.filter(([id])=>{const v=id==="f-location"?val("location"):$(id).value;return v==="__"||!String(v||"").trim()}).map(x=>x[1])}
-function dupMark(){DUP_NEED.forEach(([id])=>{const v=id==="f-location"?val("location"):$(id).value;const bad=v==="__"||!String(v||"").trim();
+// 라벨은 '미지정'(빈 값)도 고른 것으로 봄 — '선택하세요'만 빠진 칸
+const dupBad=id=>{const v=id==="f-location"?val("location"):$(id).value;return v==="__"||(id!=="f-label"&&!String(v||"").trim())};
+function dupMissing(){return DUP_NEED.filter(([id])=>dupBad(id)).map(x=>x[1])}
+function dupMark(){DUP_NEED.forEach(([id])=>{const bad=dupBad(id);
   const node=id==="f-location"?$("f-location-sel"):$(id);node.classList.toggle("need",bad)})}
 $("dupBtn").onclick=async()=>{
   const src=editing;if(!src||!canWrite)return;
