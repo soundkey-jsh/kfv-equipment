@@ -152,6 +152,8 @@ input[readonly]{background:var(--bg)}
 .two>*,.three>*{min-width:0}
 .panel-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;margin-top:6px}
 .panel-actions .right{display:flex;gap:8px}
+.dupnote{margin:0 0 4px;padding:10px 12px;border-radius:8px;background:var(--accent-soft);color:var(--fg);font-size:13px;line-height:1.5}
+.need select,.need input,select.need,input.need{outline:2px solid var(--red);outline-offset:1px}
 .meta{font-size:12px;color:var(--muted)}
 .err{color:var(--red);font-size:13px;margin:0}
 .confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--red-bg);color:var(--red);padding:10px;border-radius:6px;font-size:13px}
@@ -754,7 +756,7 @@ html{-webkit-text-size-adjust:100%}
       <button type="button" class="btn danger" id="confirmDel">삭제</button>
       <button type="button" class="btn" id="cancelDel">취소</button>
     </div>
-    <div class="panel-actions"><button type="button" class="btn danger" id="delBtn" hidden>장비 삭제</button></div>
+    <div class="panel-actions"><button type="button" class="btn danger" id="delBtn" hidden>장비 삭제</button><button type="button" class="btn" id="dupBtn" hidden title="모델 정보만 복사해서 새 장비 입력 창을 엽니다">+ 같은 장비 추가하기</button></div>
   </form>
 </div>
 <datalist id="dl-category"></datalist><datalist id="dl-field"></datalist><datalist id="dl-type"></datalist>
@@ -1325,10 +1327,13 @@ function searchHit(fields,q){
 }
 // 관리번호를 점·하이픈으로 끊어 검색 (예: ST.RX.G3.18.1 → ST-RX-SE-G3-18-1). 중간 칸은 건너뛰어도 순서대로 맞으면 찾음
 function codeHit(id,q){
-  q=q.trim();if(!/^[a-z0-9]+(?:[.\-][a-z0-9]*){2,}$/i.test(q))return false;
-  const t=q.toLowerCase().split(/[.\-]/).filter(Boolean),seg=String(id||"").toLowerCase().split("-"),open=!/[.\-]$/.test(q);let j=0;
-  for(let i=0;i<seg.length&&j<t.length;i++){const last=open&&j===t.length-1;if(last?seg[i].startsWith(t[j]):seg[i]===t[j])j++}
-  return j===t.length;
+  // 관리번호를 점·하이픈으로 끊어 검색. 칸 순서는 상관없음 (G3.RX = RX.G3), 중간 칸은 빼도 됨, 마지막 칸은 입력 중이면 앞부분만 맞아도 됨
+  q=q.trim();if(!/^[a-z0-9]+(?:[.\-][a-z0-9]*)+$/i.test(q))return false;
+  const t=q.toLowerCase().split(/[.\-]/).filter(Boolean);if(t.length<2)return false;
+  const seg=String(id||"").toLowerCase().split("-"),open=!/[.\-]$/.test(q),used=new Set();
+  const exact=open?t.slice(0,-1):t,pre=open?t[t.length-1]:null;
+  for(const k of exact){const i=seg.findIndex((s,n)=>!used.has(n)&&s===k);if(i<0)return false;used.add(i)}
+  return pre==null||seg.some((s,n)=>!used.has(n)&&s.startsWith(pre));
 }
 function visible(){
   const q=F.q.trim().toLowerCase();
@@ -1440,7 +1445,7 @@ function computeId(){
     const tag=$("c-"+k);tag.className="code"+(known?"":" new");tag.textContent=v===""?"":known?c:"새 코드";
     if(!c)missing.push(k==="field"?"Field Code":KIND[k]);segs.push(c);
   });
-  const y=$("f-year").value;const yc=yearCode(y);$("c-year").textContent=yc;segs.push(yc);
+  const y=$("f-year").value;const yc=y==="__"?null:yearCode(y);$("c-year").textContent=yc||"";segs.push(yc);
   const prefix=segs.every(Boolean)?segs.join("-"):null;
   let num=parseInt($("f-number").value,10);let auto=false;
   if(!num){auto=true;num=prefix?(editing&&prefixOf(editing.assetId)===prefix?numOf(editing.assetId):nextNumber(prefix,editing&&editing.id)):null}
@@ -1611,8 +1616,11 @@ function labelCell(i){
 }
 
 const TEXT_KEYS=["category","field","type","manufacturer","model","location","assign","sn","issues","maintenance","notes"];
+let dupFrom=null;const DUP_SELS=["f-year","f-usage","f-label"];
 function openPanel(item,over,focusId){
-  editing=item||null;
+  editing=item||null;dupFrom=null;
+  DUP_SELS.forEach(id=>{const o=$(id).querySelector('option[value="__"]');if(o)o.remove()});
+  document.querySelectorAll("#form .need").forEach(e=>e.classList.remove("need"));{const n=$("dupNote");if(n)n.remove()}
   // 예시 문구는 새 장비를 추가할 때만 보이고, 기존 장비에서는 빈 칸은 빈 칸으로 둠
   document.querySelectorAll("#form [data-ph]").forEach(e=>e.placeholder=item?"":e.dataset.ph);
   $("formTitle").textContent=item?"장비 정보":"장비 추가";
@@ -1624,7 +1632,7 @@ function openPanel(item,over,focusId){
   $("f-number").value=item?String(numOf(item.assetId)||""):"";
   $("f-usage").value=base.usage||"";$("f-label").value=base.label||"";
   ID_KEYS.forEach(k=>$("n-"+k).value="");
-  $("f-err").hidden=true;$("confirmBox").hidden=true;$("delBtn").hidden=!item||!canWrite;tkPanel("eq",item&&item.id);
+  $("f-err").hidden=true;$("confirmBox").hidden=true;$("delBtn").hidden=!item||!canWrite;$("dupBtn").hidden=!item||!canWrite;tkPanel("eq",item&&item.id);
   const meta=$("f-meta");
   if(item&&item.updatedAt){meta.hidden=false;meta.textContent="마지막 수정: "+new Date(item.updatedAt).toLocaleString("ko-KR");
     if(item.updatedBy&&user){getProfiles([item.updatedBy]).then(ps=>{const nm=ps&&ps[item.updatedBy]&&ps[item.updatedBy].name;if(nm&&editing===item)meta.textContent+=" · "+nm}).catch(()=>{})}}
@@ -1656,6 +1664,24 @@ async function requestClose(){
   else if(r==="alt")closePanel();
 }
 $("addBtn").onclick=()=>guardAdd($("addBtn"),"장비",()=>openPanel(null));
+/* 같은 장비 추가하기: 모델 정보만 복사해 새 장비 입력 창을 열고, 구입연도·상태·라벨·용도·위치는 직접 고르게 함 */
+const DUP_NEED=[["f-year","구입연도"],["f-usage","상태"],["f-label","라벨"],["f-assign","용도"],["f-location","위치"]];
+function dupMissing(){return DUP_NEED.filter(([id])=>{const v=id==="f-location"?val("location"):$(id).value;return v==="__"||!String(v||"").trim()}).map(x=>x[1])}
+function dupMark(){DUP_NEED.forEach(([id])=>{const v=id==="f-location"?val("location"):$(id).value;const bad=v==="__"||!String(v||"").trim();
+  const node=id==="f-location"?$("f-location-sel"):$(id);node.classList.toggle("need",bad)})}
+$("dupBtn").onclick=async()=>{
+  const src=editing;if(!src||!canWrite)return;
+  if(isDirty()){const ok=await askConfirm("수정 중인 내용이 있습니다","저장하지 않고 같은 장비 추가 창으로 넘어가면 지금 고친 내용은 사라집니다.",null,null,"넘어가기");if(!ok)return}
+  const over={category:src.category,field:src.field,type:src.type,manufacturer:src.manufacturer,model:src.model,location:"",assign:"",sn:"",issues:"",maintenance:"",notes:""};
+  openPanel(null,over,"f-year");dupFrom=src;
+  $("formTitle").textContent="같은 장비 추가";
+  DUP_SELS.forEach(id=>{const o=new Option("선택하세요","__");$(id).insertBefore(o,$(id).firstChild);$(id).value="__"});
+  syncPick("location");
+  const n=el("p","dupnote");n.id="dupNote";n.append(el("b",null,(src.assetId||"")+"와(과) 같은 모델"),document.createTextNode("로 새 장비를 입력합니다. 빨간 칸(구입연도·상태·라벨·용도·위치)을 채운 뒤 [저장]하세요. 관리번호 번호는 자동으로 다음 번호가 붙습니다."));
+  $("f-err").parentNode.insertBefore(n,$("f-err"));
+  refreshPreview();dupMark();panelSnap=formSnap();panelForceDirty=true;
+};
+["f-year","f-usage","f-label","f-assign","f-location","f-location-sel"].forEach(id=>{const e=$(id);if(e){e.addEventListener("change",()=>{if(dupFrom)dupMark()});e.addEventListener("input",()=>{if(dupFrom)dupMark()})}});
 $("closeBtn").onclick=requestClose;
 $("overlay").addEventListener("click",e=>{if(e.target===$("overlay"))requestClose()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("overlay").hidden)requestClose()});
@@ -2769,6 +2795,7 @@ async function delMat(m){
 
 $("form").addEventListener("submit",async e=>{
   e.preventDefault();if(!db||!canWrite)return;
+  if(dupFrom&&!editing){const miss=dupMissing();if(miss.length){showErr("같은 장비 추가: "+miss.join(", ")+"을(를) 입력하세요.");return}}
   const r=refreshPreview();
   if(r.missing.length){showErr(r.missing.join(", ")+" 값과 코드를 입력하세요.");return}
   if(items.some(i=>i.assetId===r.id&&(!editing||i.id!==editing.id))){showErr("이미 사용 중인 관리번호입니다. Number를 바꾸거나 비워서 자동으로 받으세요.");return}
